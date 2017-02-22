@@ -158,6 +158,17 @@ class SaleOrder(models.Model):
                 description="Reopen sales order %s" % binding.magento_id)
         return result
 
+    @api.multi
+    def action_invoice_create(self, grouped=False, final=False):
+        invoice_ids = []
+        for order in self:
+            invoice_id = super(sale_order, order).action_invoice_create(grouped=grouped, final=final)
+            if invoice_id:
+                invoice_ids.append(invoice_id)
+            invoice = self.env['account.invoice'].browse(invoice_id)
+            invoice.sale_id = order.id
+        return invoice_ids
+
 
 class MagentoSaleOrderLine(models.Model):
     _name = 'magento.sale.order.line'
