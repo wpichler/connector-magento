@@ -39,7 +39,6 @@ class magento_backend(orm.Model):
         'pricelist_id': fields.many2one('product.pricelist',
                                         'Pricelist',
                                         required=True,
-                                        domain="[('type', '=', 'sale')]",
                                         help='The price list used to define '
                                              'the prices of the products in '
                                              'Magento.'),
@@ -86,7 +85,6 @@ class magento_website(orm.Model):
     _columns = {
         'pricelist_id': fields.many2one('product.pricelist',
                                         'Pricelist',
-                                        domain="[('type', '=', 'sale')]",
                                         help='The pricelist used to define '
                                              'the prices of the products in '
                                              'Magento for this website.\n'

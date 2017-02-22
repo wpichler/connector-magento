@@ -20,7 +20,7 @@
 ##############################################################################
 
 {'name': 'Magento Connector - Pricing',
- 'version': '2.0.0',
+ 'version': '9.0.0',
  'category': 'Connector',
  'depends': ['magentoerpconnect',
              ],
@@ -40,6 +40,6 @@ are pushed to Magento.
  'demo': [],
  'data': ['magento_model_view.xml',
           ],
- 'installable': False,
+ 'installable': True,
  'application': False,
  }

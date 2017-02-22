@@ -26,7 +26,7 @@ from openerp.addons.connector.exception import FailedJobError
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   only_create
                                                   )
-from openerp.addons.connector_ecommerce.event import on_product_price_changed
+from openerp.addons.connector_ecommerce.models.event import on_product_price_changed
 from openerp.addons.magentoerpconnect.unit.export_synchronizer import (
     MagentoBaseExporter)
 from openerp.addons.magentoerpconnect.backend import magento
