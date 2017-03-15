@@ -162,7 +162,7 @@ class SaleOrder(models.Model):
     def action_invoice_create(self, grouped=False, final=False):
         invoice_ids = []
         for order in self:
-            invoice_id = super(sale_order, order).action_invoice_create(grouped=grouped, final=final)
+            invoice_id = super(SaleOrder, order).action_invoice_create(grouped=grouped, final=final)
             if invoice_id:
                 invoice_ids.append(invoice_id)
             invoice = self.env['account.invoice'].browse(invoice_id)
