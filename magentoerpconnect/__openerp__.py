@@ -37,6 +37,7 @@
           'views/delivery_view.xml',
           'views/stock_view.xml',
           'views/account_payment_mode_view.xml',
+          'views/queue_job.xml',
           ],
  'installable': True,
  'application': True,

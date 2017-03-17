@@ -7,7 +7,7 @@ import socket
 import logging
 import xmlrpclib
 
-import magento as magentolib
+import magento2 as magentolib
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import (NetworkRetryableError,
                                                 RetryableJobError)
@@ -60,31 +60,6 @@ def output_recorder(filename):
     _logger.debug('recorder written to file %s', filename)
 
 
-class MagentoLocation(object):
-
-    def __init__(self, location, username, password,
-                 use_custom_api_path=False):
-        self._location = location
-        self.username = username
-        self.password = password
-        self.use_custom_api_path = use_custom_api_path
-
-        self.use_auth_basic = False
-        self.auth_basic_username = None
-        self.auth_basic_password = None
-
-    @property
-    def location(self):
-        location = self._location
-        if not self.use_auth_basic:
-            return location
-        assert self.auth_basic_username and self.auth_basic_password
-        replacement = "%s:%s@" % (self.auth_basic_username,
-                                  self.auth_basic_password)
-        location = location.replace('://', '://' + replacement)
-        return location
-
-
 class MagentoCRUDAdapter(CRUDAdapter):
     """ External Records Adapter for Magento """
 
@@ -96,16 +71,12 @@ class MagentoCRUDAdapter(CRUDAdapter):
         """
         super(MagentoCRUDAdapter, self).__init__(connector_env)
         backend = self.backend_record
-        magento = MagentoLocation(
-            backend.location,
-            backend.username,
-            backend.password,
-            use_custom_api_path=backend.use_custom_api_path)
-        if backend.use_auth_basic:
-            magento.use_auth_basic = True
-            magento.auth_basic_username = backend.auth_basic_username
-            magento.auth_basic_password = backend.auth_basic_password
-        self.magento = magento
+        self.magento = magentolib.API(
+            username=backend.username,
+            password=backend.password,
+            url=backend.location,
+        )
+        self.magento.connect()
 
     def search(self, filters=None):
         """ Search records according to some criterias
@@ -133,51 +104,6 @@ class MagentoCRUDAdapter(CRUDAdapter):
         """ Delete a record on the external system """
         raise NotImplementedError
 
-    def _call(self, method, arguments):
-        try:
-            custom_url = self.magento.use_custom_api_path
-            _logger.debug("Start calling Magento api %s", method)
-            with magentolib.API(self.magento.location,
-                                self.magento.username,
-                                self.magento.password,
-                                full_url=custom_url) as api:
-                # When Magento is installed on PHP 5.4+, the API
-                # may return garble data if the arguments contain
-                # trailing None.
-                if isinstance(arguments, list):
-                    while arguments and arguments[-1] is None:
-                        arguments.pop()
-                start = datetime.now()
-                try:
-                    result = api.call(method, arguments)
-                except:
-                    _logger.error("api.call(%s, %s) failed", method, arguments)
-                    raise
-                else:
-                    _logger.debug("api.call(%s, %s) returned %s in %s seconds",
-                                  method, arguments, result,
-                                  (datetime.now() - start).seconds)
-                # Uncomment to record requests/responses in ``recorder``
-                # record(method, arguments, result)
-                return result
-        except (socket.gaierror, socket.error, socket.timeout) as err:
-            raise NetworkRetryableError(
-                'A network error caused the failure of the job: '
-                '%s' % err)
-        except xmlrpclib.ProtocolError as err:
-            if err.errcode in [502,   # Bad gateway
-                               503,   # Service unavailable
-                               504]:  # Gateway timeout
-                raise RetryableJobError(
-                    'A protocol error caused the failure of the job:\n'
-                    'URL: %s\n'
-                    'HTTP/HTTPS headers: %s\n'
-                    'Error code: %d\n'
-                    'Error message: %s\n' %
-                    (err.url, err.headers, err.errcode, err.errmsg))
-            else:
-                raise
-
 
 class GenericAdapter(MagentoCRUDAdapter):
 
@@ -191,27 +117,18 @@ class GenericAdapter(MagentoCRUDAdapter):
 
         :rtype: list
         """
-        return self._call('%s.search' % self._magento_model,
-                          [filters] if filters else [{}])
+        result = self.magento.get(self._magento_model, filters)
+        ids = []
+        for row in result:
+            ids.append(row['id'])
+        return ids
 
     def read(self, id, attributes=None):
         """ Returns the information of a record
 
         :rtype: dict
         """
-        arguments = [int(id)]
-        if attributes:
-            # Avoid to pass Null values in attributes. Workaround for
-            # https://bugs.launchpad.net/openerp-connector-magento/+bug/1210775
-            # When Magento is installed on PHP 5.4 and the compatibility patch
-            # http://magento.com/blog/magento-news/magento-now-supports-php-54
-            # is not installed, calling info() with None in attributes
-            # would return a wrong result (almost empty list of
-            # attributes). The right correction is to install the
-            # compatibility patch on Magento.
-            arguments.append(attributes)
-        return self._call('%s.info' % self._magento_model,
-                          arguments)
+        return self.magento.get("%s/%d" % (self._magento_model, int(id), ), attributes)
 
     def search_read(self, filters=None):
         """ Search records according to some criterias
@@ -220,7 +137,7 @@ class GenericAdapter(MagentoCRUDAdapter):
 
     def create(self, data):
         """ Create a record on the external system """
-        return self._call('%s.create' % self._magento_model, [data])
+        return self.magento.post('%s' % self._magento_model, data)
 
     def write(self, id, data):
         """ Update records on the external system """
@@ -245,3 +162,15 @@ class GenericAdapter(MagentoCRUDAdapter):
         path = path.lstrip('/')
         url = '/'.join((url, path))
         return url
+
+class MetaGenericAdapter(GenericAdapter):
+    def read(self, id, attributes=None):
+        """ Returns the information of a record
+
+        :rtype: dict
+        """
+        result = self.magento.get(self._magento_model, attributes)
+        for row in result:
+            if row['id'] == id:
+                return row
+        return None

@@ -185,7 +185,7 @@ class ProductProduct(models.Model):
 @magento
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'magento.product.product'
-    _magento_model = 'catalog_product'
+    _magento_model = 'products'
     _admin_path = '/{model}/edit/id/{id}'
 
     def _call(self, method, arguments):

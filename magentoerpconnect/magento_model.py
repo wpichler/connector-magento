@@ -10,7 +10,7 @@ from openerp.exceptions import Warning as UserError
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.unit.mapper import mapping, ImportMapper
-from .unit.backend_adapter import GenericAdapter
+from .unit.backend_adapter import GenericAdapter, MetaGenericAdapter
 from .unit.import_synchronizer import (import_batch,
                                        DirectBatchImporter,
                                        MagentoImporter,
@@ -40,7 +40,7 @@ class MagentoBackend(models.Model):
         to add a version from an ``_inherit`` does not constrain
         to redefine the ``version`` field in the ``_inherit`` model.
         """
-        return [('1.7', '1.7+')]
+        return [('2.1', '2.1')]
 
     @api.model
     def _get_stock_field_id(self):
@@ -576,24 +576,21 @@ class MagentoStoreview(models.Model):
 
 
 @magento
-class WebsiteAdapter(GenericAdapter):
+class WebsiteAdapter(MetaGenericAdapter):
     _model_name = 'magento.website'
-    _magento_model = 'ol_websites'
-    _admin_path = 'system_store/editWebsite/website_id/{id}'
+    _magento_model = 'store/websites'
 
 
 @magento
-class StoreAdapter(GenericAdapter):
+class StoreAdapter(MetaGenericAdapter):
     _model_name = 'magento.store'
-    _magento_model = 'ol_groups'
-    _admin_path = 'system_store/editGroup/group_id/{id}'
+    _magento_model = 'store/storeGroups'
 
 
 @magento
-class StoreviewAdapter(GenericAdapter):
+class StoreviewAdapter(MetaGenericAdapter):
     _model_name = 'magento.storeview'
-    _magento_model = 'ol_storeviews'
-    _admin_path = 'system_store/editStore/store_id/{id}'
+    _magento_model = 'store/storeViews'
 
 
 @magento
@@ -620,8 +617,7 @@ MetadataBatchImport = MetadataBatchImporter  # deprecated
 class WebsiteImportMapper(ImportMapper):
     _model_name = 'magento.website'
 
-    direct = [('code', 'code'),
-              ('sort_order', 'sort_order')]
+    direct = [('code', 'code')]
 
     @mapping
     def name(self, record):
@@ -655,14 +651,12 @@ class StoreviewImportMapper(ImportMapper):
     direct = [
         ('name', 'name'),
         ('code', 'code'),
-        ('is_active', 'enabled'),
-        ('sort_order', 'sort_order'),
     ]
 
     @mapping
     def store_id(self, record):
         binder = self.binder_for(model='magento.store')
-        binding_id = binder.to_openerp(record['group_id'])
+        binding_id = binder.to_openerp(record['store_group_id'])
         return {'store_id': binding_id}
 
 
