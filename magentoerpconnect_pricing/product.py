@@ -35,6 +35,9 @@ from openerp.addons.magentoerpconnect.connector import get_environment
 from openerp.addons.magentoerpconnect.related_action import (
     unwrap_binding,
 )
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 # TODO: replace a price mapper only, not the full mapper
@@ -68,9 +71,15 @@ class ProductPriceExporter(MagentoBaseExporter):
             # a False value will set the 'Use default value' in Magento
             return False
         with self.session.change_context({'pricelist': pricelist_id}):
-            return self.session.read(self.model._name,
-                                     self.binding_id,
-                                     ['price'])['price']
+            product_obj = self.session.pool.get('product.product')
+            ctx = self.session.context.copy()
+            ctx.update({
+                'pricelist': pricelist_id
+            })
+            _logger.info("Current context: %r", ctx)
+            product = product_obj.browse(self.session.cr, self.session.uid,
+                                       self.binding_record.openerp_id.id, context=ctx)
+            return product.price
 
     def _update(self, data, storeview_id=None):
         self.backend_adapter.write(self.magento_id, data,
@@ -118,14 +127,12 @@ class ProductPriceExporter(MagentoBaseExporter):
             # - BUT the Magento API expects a storeview id to modify
             #   a price on a website (and not a website id...)
             # So we take the first storeview of the website to update.
-            storeview_ids = self.session.search(
-                'magento.storeview',
-                [('store_id.website_id', '=', website.id)])
-            if not storeview_ids:
-                continue
-            magento_storeview = storeview_binder.to_backend(storeview_ids[0])
-            price = self._get_price(site_pricelist_id)
-            self._update({'price': price}, storeview_id=magento_storeview)
+            for store in website.store_ids:
+                for storeview in store.storeview_ids:
+                    _logger.info("Update price on storeview %r", storeview)
+                    magento_storeview = storeview_binder.to_backend(storeview.id)
+                    price = self._get_price(site_pricelist_id)
+                    self._update({'price': price}, storeview_id=magento_storeview)
         self.binder.bind(self.magento_id, self.binding_id)
         return _('Prices have been updated.')
 
@@ -149,7 +156,10 @@ def product_price_changed(session, model_name, record_id, fields=None):
 @related_action(action=unwrap_binding)
 def export_product_price(session, model_name, record_id, website_id=None):
     """ Export the price of a product. """
-    product_bind = session.browse(model_name, record_id)
+    _logger.info("Model: %s, Record ID: %d", model_name, record_id)
+    model = session.pool.get(model_name)
+    product_bind = model.browse(session.cr, session.uid,
+                                record_id, context=session.context)
     backend_id = product_bind.backend_id.id
     env = get_environment(session, model_name, backend_id)
     price_exporter = env.get_connector_unit(ProductPriceExporter)

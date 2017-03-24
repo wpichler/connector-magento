@@ -9,6 +9,7 @@
             <field name="arch" type="xml">
                 <field name="warehouse_id" position="after">
                     <field name="pricelist_id" on_change="onchange_pricelist_id(pricelist_id)"/>
+                    <field name="automatic_price_updates"/>
                 </field>
             </field>
         </record>
@@ -25,6 +26,18 @@
                         groups="product.group_sale_pricelist"/>
                 </group>
             </field>
+        </record>
+
+        <record model="ir.cron" id="export_product_prices">
+            <field name="name">Refresh Product Prices in Magento</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="model" eval="'magento.backend'"/>
+            <field name="function" eval="'export_prices'"/>
+            <field name="args" eval="'()'"/>
         </record>
     </data>
 </openerp>

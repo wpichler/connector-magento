@@ -20,6 +20,7 @@
 ##############################################################################
 
 from openerp.osv import fields, orm
+from openerp import api
 from openerp.tools.translate import _
 from openerp.addons.connector.session import ConnectorSession
 from .product import export_product_price
@@ -42,6 +43,7 @@ class magento_backend(orm.Model):
                                         help='The price list used to define '
                                              'the prices of the products in '
                                              'Magento.'),
+        'automatic_price_updates': fields.boolean('Automatic Price Update'),
     }
 
     _defaults = {
@@ -58,6 +60,11 @@ class magento_backend(orm.Model):
                          'in Magento.')
         }
         return {'warning': warning}
+
+    @api.model
+    def export_prices(self):
+        for backend in self.search([('automatic_price_updates', '=', True)]):
+            backend._update_default_prices()
 
     def _update_default_prices(self, cr, uid, ids, context=None):
         """ Update the default prices of the products linked with
