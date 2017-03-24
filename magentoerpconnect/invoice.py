@@ -128,7 +128,7 @@ class MagentoInvoiceExporter(Exporter):
         # get product and quantities to invoice
         # if no magento id found, do not export it
         order = invoice.magento_order_id
-        for line in invoice.invoice_line:
+        for line in invoice.openerp_id.invoice_line_ids:
             product = line.product_id
             # find the order line with the same product
             # and get the magento item_id (id of the line)
