@@ -110,6 +110,8 @@ class GenericAdapter(MagentoCRUDAdapter):
     _model_name = None
     _magento_model = None
     _admin_path = None
+    _id_field = 'entity_type_id'
+    _search_path = ''
 
     def search(self, filters=None):
         """ Search records according to some criterias
@@ -117,10 +119,24 @@ class GenericAdapter(MagentoCRUDAdapter):
 
         :rtype: list
         """
-        result = self.magento.get(self._magento_model, filters)
+        params = {
+            'search_criteria':  {
+                "filter_groups": [
+                    {
+                        "filters": [
+                        ]
+                    }
+                ]
+            }
+        }
+        if self._search_path > "":
+            path = "%s/%s" % (self._magento_model, self._search_path, )
+        else:
+            path = self._magento_model
+        result = self.magento.get(path, params)
         ids = []
-        for row in result:
-            ids.append(row['id'])
+        for row in result['items']:
+            ids.append(row[self._id_field])
         return ids
 
     def read(self, id, attributes=None):
@@ -141,7 +157,7 @@ class GenericAdapter(MagentoCRUDAdapter):
 
     def write(self, id, data):
         """ Update records on the external system """
-        return self._call('%s.update' % self._magento_model,
+        return self.magento.put('%s' % self._magento_model,
                           [int(id), data])
 
     def delete(self, id):
@@ -164,6 +180,18 @@ class GenericAdapter(MagentoCRUDAdapter):
         return url
 
 class MetaGenericAdapter(GenericAdapter):
+    def search(self, filters=None):
+        """ Search records according to some criterias
+        and returns a list of ids
+
+        :rtype: list
+        """
+        result = self.magento.get(self._magento_model, filters)
+        ids = []
+        for row in result:
+            ids.append(row['id'])
+        return ids
+
     def read(self, id, attributes=None):
         """ Returns the information of a record
 

@@ -36,6 +36,9 @@ class MagentoModelBinder(MagentoBinder):
         'magento.sale.order',
         'magento.sale.order.line',
         'magento.account.invoice',
+        'magento.attribute.set',
+        'magento.product.attribute',
+        'magento.media',
     ]
 
     def to_openerp(self, external_id, unwrap=False, browse=False):

@@ -23,7 +23,7 @@ from openerp.addons.connector.unit.mapper import (mapping,
 from openerp.addons.magentoerpconnect.unit.delete_synchronizer import (
     MagentoDeleteSynchronizer)
 from openerp.addons.magentoerpconnect.unit.export_synchronizer import (
-    MagentoExporter)
+    export_record, MagentoExporter)
 from openerp.addons.magentoerpconnect.backend import magento
 from openerp.addons.connector.exception import MappingError
 from openerp.addons.connector.event import (
@@ -35,7 +35,8 @@ import logging
 _logger = logging.getLogger(__name__)
 import openerp.addons.magentoerpconnect.consumer as magentoerpconnect
 from openerp.addons.magentoerpconnect.product import ProductInventoryExporter
-
+from openerp.addons.magentoerpconnect_catalog.models.magento_product.media import MagentoMediaExporter
+from openerp.addons.magentoerpconnect.connector import get_environment
 
 @on_record_write(model_names=[
     'magento.product.product',
@@ -72,10 +73,12 @@ class ProductProductExportMapper(ExportMapper):
     @mapping
     def all(self, record):
         return {'name': record.name,
-                'description': record.description,
+                # 'description': record.description,
                 'weight': record.weight,
-                'price': record.lst_price,
-                'short_description': record.description_sale,
+                'price': record.list_price,
+                'attribute_set_id': 4,
+                'type_id': "simple"
+                # 'short_description': record.description_sale,
                 # 'type': record.product_type,
                 # 'product_type': record.product_type,
                 }
@@ -102,13 +105,13 @@ class ProductProductExportMapper(ExportMapper):
             created_at = '1970-01-01'
         return {'created_at': created_at}
 
-    @mapping
+    """@mapping
     def website_ids(self, record):
         website_ids = []
         for website_id in record.website_ids:
             magento_id = website_id.magento_id
             website_ids.append(magento_id)
-        return {'website_ids': website_ids}
+        return {'website_ids': website_ids}"""
 
     @mapping
     def status(self, record):
@@ -118,7 +121,7 @@ class ProductProductExportMapper(ExportMapper):
     def tax_class(self, record):
         binder = self.get_binder_for_model('magento.tax.class')
         tax_class_id = binder.to_backend(record.tax_class_id.id, wrap=True)
-        return {'tax_class_id': str(tax_class_id)}"""
+        return {'tax_class_id': str(tax_class_id)}
 
     @mapping
     def category(self, record):
@@ -132,7 +135,7 @@ class ProductProductExportMapper(ExportMapper):
             for m_categ in categ.magento_bind_ids:
                 if m_categ.backend_id.id == self.backend_record.id:
                     categ_ids.append(m_categ.magento_id)
-        return {'categories': categ_ids}
+        return {'categories': categ_ids}"""
 
 
 @magento
@@ -159,7 +162,7 @@ class ProductProductExporter(MagentoExporter):
     def _create(self, data):
         """ Create the Magento record """
         # special check on data before export
-        sku = data.pop('sku')
+        # sku = data.pop('sku')
         # attr_set_id = data.pop('attrset')
         # product_type = data.pop('product_type')
         self._validate_data(data)
@@ -170,9 +173,28 @@ class ProductProductExporter(MagentoExporter):
         # translation_exporter = self.unit_for(ProductProductTranslationExporter)
         # translation_exporter.run(self.binding_id)
 
+        # if self.create_mode:
+        #     inventory_exporter = self.unit_for(ProductInventoryExporter)
+        #     inventory_exporter.run(self.binding_id, ['magento_qty'])
         if self.create_mode:
-            inventory_exporter = self.unit_for(ProductInventoryExporter)
-            inventory_exporter.run(self.binding_id, ['magento_qty'])
+            binder = self.binder_for("magento.media")
+            for image in self.binding_record.image_ids:
+                magento_id = binder.to_backend(image.id, wrap=True)
+                env = get_environment(self.session, "magento.media", self.backend_record.id)
+                if not magento_id:
+                    media_obj = self.env['magento.media'].create({
+                        'openerp_id': image.id,
+                        'backend_id': self.backend_record.id,
+                        'sku': self.binding_record.code,
+                    })
+                    media_exporter = env.get_connector_unit(MagentoMediaExporter)
+                    export_record(self.session, 'magento.media', media_obj.id)
+                    magento_id = binder.to_backend(image.id, wrap=True)
+                if not magento_id:
+                    # well, this sucks
+                    return  # TODO
+                # media_exporter.run(media)
+
 
 # @job(default_channel='root.magento')
 # @related_action(action=unwrap_binding)

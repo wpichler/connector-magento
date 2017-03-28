@@ -188,17 +188,6 @@ class ProductProductAdapter(GenericAdapter):
     _magento_model = 'products'
     _admin_path = '/{model}/edit/id/{id}'
 
-    def _call(self, method, arguments):
-        try:
-            return super(ProductProductAdapter, self)._call(method, arguments)
-        except xmlrpclib.Fault as err:
-            # this is the error in the Magento API
-            # when the product does not exist
-            if err.faultCode == 101:
-                raise IDMissingInBackend
-            else:
-                raise
-
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria
         and returns a list of ids
@@ -227,12 +216,12 @@ class ProductProductAdapter(GenericAdapter):
         return self._call('ol_catalog_product.info',
                           [int(id), storeview_id, attributes, 'id'])
 
-    def write(self, id, data, storeview_id=None):
-        """ Update records on the external system """
-        # XXX actually only ol_catalog_product.update works
-        # the PHP connector maybe breaks the catalog_product.update
-        return self._call('ol_catalog_product.update',
-                          [int(id), data, storeview_id, 'id'])
+    # def write(self, id, data, storeview_id=None):
+    #     """ Update records on the external system """
+    #     # XXX actually only ol_catalog_product.update works
+    #     # the PHP connector maybe breaks the catalog_product.update
+    #     return self.write('products',
+    #                       [int(id), data, storeview_id, 'id'])
 
     def get_images(self, id, storeview_id=None):
         return self._call('product_media.list', [int(id), storeview_id, 'id'])
@@ -243,7 +232,7 @@ class ProductProductAdapter(GenericAdapter):
 
     def update_inventory(self, id, data):
         # product_stock.update is too slow
-        return self._call('oerp_cataloginventory_stock_item.update',
+        return self.put('oerp_cataloginventory_stock_item.update',
                           [int(id), data])
 
 

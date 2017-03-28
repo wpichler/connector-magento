@@ -3,6 +3,15 @@
 # © 2016 Sodexis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
+from openerp.addons.connector.unit.mapper import mapping, ImportMapper
+
+
+class MagentoImportMapper(ImportMapper):
+
+    @mapping
+    def backend_id(self, record):
+        return {'backend_id': self.backend_record.id}
+
 
 def normalize_datetime(field):
     """Change a invalid date which comes from Magento, if

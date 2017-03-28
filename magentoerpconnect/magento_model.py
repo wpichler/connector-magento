@@ -17,6 +17,7 @@ from .unit.import_synchronizer import (import_batch,
                                        )
 from .partner import partner_import_batch
 from .sale import sale_order_import_batch
+from .magento_product_attribute import product_attribute_import_batch
 from .backend import magento
 from .connector import add_checkpoint
 
@@ -190,7 +191,8 @@ class MagentoBackend(models.Model):
             for backend in self:
                 for model in ('magento.website',
                               'magento.store',
-                              'magento.storeview'):
+                              'magento.storeview',
+                              'magento.attribute.set'):
                     # import directly, do not delay because this
                     # is a fast operation, a direct return is fine
                     # and it is simpler to import them sequentially
@@ -217,6 +219,14 @@ class MagentoBackend(models.Model):
         storeview_obj = self.env['magento.storeview']
         storeviews = storeview_obj.search([('backend_id', 'in', self.ids)])
         storeviews.import_sale_orders()
+        return True
+
+    @api.multi
+    def import_attributes(self):
+        """ Import sale orders from all store views """
+        storeview_obj = self.env['magento.storeview']
+        storeviews = storeview_obj.search([('backend_id', 'in', self.ids)])
+        storeviews.import_attributes()
         return True
 
     @api.multi
@@ -574,6 +584,21 @@ class MagentoStoreview(models.Model):
         self.write({'import_orders_from_date': next_time})
         return True
 
+    @api.multi
+    def import_attributes(self):
+        session = ConnectorSession(self.env.cr, self.env.uid,
+                                   context=self.env.context)
+        import_start_time = datetime.now()
+        for storeview in self:
+            backend_id = storeview.backend_id.id
+            product_attribute_import_batch.delay(
+                session,
+                'magento.product.attribute',
+                backend_id,
+                {'magento_storeview_id': storeview.magento_id},
+                priority=1)  # executed as soon as possible
+        return True
+
 
 @magento
 class WebsiteAdapter(MetaGenericAdapter):
@@ -607,6 +632,7 @@ class MetadataBatchImporter(DirectBatchImporter):
         'magento.website',
         'magento.store',
         'magento.storeview',
+        'magento.attribute.set'
     ]
 
 
@@ -625,10 +651,6 @@ class WebsiteImportMapper(ImportMapper):
         if name is None:
             name = _('Undefined')
         return {'name': name}
-
-    @mapping
-    def backend_id(self, record):
-        return {'backend_id': self.backend_record.id}
 
 
 @magento

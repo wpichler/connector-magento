@@ -3,21 +3,24 @@
 # © 2016 Sodexis
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from . import setting
-from . import connector
-from . import backend
+import setting
+import connector
+import backend
 
-from . import magento_model
-from . import product
-from . import product_category
-from . import partner
-from . import partner_category
-from . import invoice
-from . import sale
-from . import delivery
-from . import stock_picking
-from . import stock_tracking
-from . import account_payment_mode
+import magento_model
+import product
+import product_category
+import partner
+import partner_category
+import invoice
+import sale
+import delivery
+import stock_picking
+import stock_tracking
+import account_payment_mode
 
-from . import consumer
+import consumer
 import queue_job
+import attribute_set
+import magento_product_attribute
+import magento_media

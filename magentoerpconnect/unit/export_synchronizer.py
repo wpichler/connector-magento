@@ -394,7 +394,11 @@ class MagentoExporter(MagentoBaseExporter):
             record = self._create_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
-            self.magento_id = self._create(record)
+            result = self._create(record)
+            if type(result) is dict:
+                self.magento_id = result['id']
+            else:
+                self.magento_id = int(result)
         return _('Record exported with ID %s on Magento.') % self.magento_id
 
 
