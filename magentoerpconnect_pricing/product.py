@@ -36,6 +36,7 @@ from openerp.addons.magentoerpconnect.related_action import (
     unwrap_binding,
 )
 import logging
+from openerp import SUPERUSER_ID
 
 _logger = logging.getLogger(__name__)
 
@@ -77,8 +78,8 @@ class ProductPriceExporter(MagentoBaseExporter):
                 'pricelist': pricelist_id
             })
             _logger.info("Current context: %r", ctx)
-            product = product_obj.browse(self.session.cr, self.session.uid,
-                                       self.binding_record.openerp_id.id, context=ctx)
+            product = product_obj.browse(self.session.cr, SUPERUSER_ID,
+                                         self.binding_record.openerp_id.id, context=ctx)
             return product.price
 
     def _update(self, data, storeview_id=None):
