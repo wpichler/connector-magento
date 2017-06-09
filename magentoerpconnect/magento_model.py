@@ -106,6 +106,10 @@ class MagentoBackend(models.Model):
         string='Company',
         readonly=True,
     )
+    standard_price_storeview_id = fields.Many2one(
+        comodel_name='magento.storeview',
+        string='Price Storeview',
+    )
     website_ids = fields.One2many(
         comodel_name='magento.website',
         inverse_name='backend_id',

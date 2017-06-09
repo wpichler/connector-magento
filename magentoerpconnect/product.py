@@ -350,6 +350,31 @@ class CatalogImageImporter(Importer):
             return
         self._write_image_data(binding_id, binary, image_data)
 
+@magento
+class StandardPriceImporter(Importer):
+    """ Import standard price for a record.
+
+    Usually called from importers, in ``_after_import``.
+    """
+
+    _model_name = ['magento.product.product',
+                   ]
+
+    def _get_standard_price(self, storeview_id=None):
+        return self.backend_adapter.read(self.magento_id, storeview_id)
+
+    def run(self, magento_id, binding_id, mapper_class=None):
+        self.magento_id = magento_id
+        pricedata = self._get_standard_price(self.backend_record.standard_price_storeview_id.magento_id)
+        if mapper_class is None:
+            mapper = self.mapper
+        else:
+            mapper = self.unit_for(mapper_class)
+        map_record = mapper.map_record(pricedata)
+        record = map_record.values()
+        binding = self.model.browse(binding_id)
+        binding.with_context(connector_no_export=True).write(record)
+
 
 @magento
 class BundleImporter(Importer):
@@ -571,6 +596,10 @@ class ProductImporter(MagentoImporter):
         image_importer = self.unit_for(CatalogImageImporter)
         image_importer.run(self.magento_id, binding.id)
 
+        price_importer = self.unit_for(StandardPriceImporter)
+        price_importer.run(self.magento_id, binding.id,
+                           mapper_class=StandardPriceProductImportMapper)
+
         if self.magento_record['type_id'] == 'bundle':
             bundle_importer = self.unit_for(BundleImporter)
             bundle_importer.run(binding.id, self.magento_record)
@@ -587,6 +616,14 @@ class PriceProductImportMapper(ImportMapper):
     def price(self, record):
         return {'list_price': record.get('price', 0.0)}
 
+@magento
+class StandardPriceProductImportMapper(ImportMapper):
+    _model_name = 'magento.product.product'
+
+    @mapping
+    def standard_price(self, record):
+        _logger.info("STANDARD PRICE MAPPER: RECORD: %r", record)
+        return {'standard_price': record.get('cost', 0.0)}
 
 @magento
 class IsActiveProductImportMapper(ImportMapper):

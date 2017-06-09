@@ -43,6 +43,7 @@
                     </group>
                     <group name="main_configuration" string="Main Configuration">
                         <field name="warehouse_id"/>
+                        <field name="standard_price_storeview_id"/>
                     </group>
                     <notebook>
                         <page name="import" string="Imports">
