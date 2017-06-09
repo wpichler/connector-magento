@@ -22,6 +22,9 @@
 from openerp.addons.magentoerpconnect.backend import magento
 from openerp.addons.magentoerpconnect import sale
 from openerp.addons.connector.unit.mapper import mapping
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 @magento(replacing=sale.SaleOrderImportMapper)
@@ -32,9 +35,12 @@ class SaleOrderImportMapper(sale.SaleOrderImportMapper):
     def pricelist_id(self, record):
         """ Assign to the sale order the price list used on
         the Magento Website or Backend """
+        _logger.info("Website for PRICELIST Calc: %r", record['website_id'])
         website_binder = self.binder_for('magento.website')
         oe_website_id = website_binder.to_openerp(record['website_id'])
+        _logger.info("Website for PRICELIST Calc - got ID: %r", oe_website_id)
         website = self.session.browse('magento.website', oe_website_id)
+        _logger.info("Website: %r, Pricelist: %r", website, (website.pricelist_id if website else None))
         if website.pricelist_id:
             pricelist_id = website.pricelist_id.id
         else:

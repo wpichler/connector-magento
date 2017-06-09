@@ -71,12 +71,10 @@ class magento_backend(orm.Model):
         this backend.
 
         The default prices are linked with the 'Admin' website (id: 0).
+        Do update the prices for all websites - not only the admin !
         """
         website_obj = self.pool.get('magento.website')
-        website_ids = website_obj.search(cr, uid,
-                                         [('backend_id', 'in', ids),
-                                          ('magento_id', '=', '0')],
-                                         context=context)
+        website_ids = website_obj.search(cr, uid, [('backend_id', 'in', ids)], context=context)
         website_obj.update_all_prices(cr, uid, website_ids, context=context)
 
     def write(self, cr, uid, ids, vals, context=None):
