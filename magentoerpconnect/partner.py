@@ -448,6 +448,15 @@ class BaseAddressImportMapper(ImportMapper):
             return {'country_id': country.id}
 
     @mapping
+    def lang(self, record):
+        if 'store_id' in record:
+            binder = self.binder_for(model='magento.storeview')
+            storeview = binder.to_openerp(record['store_id'], browse=True)
+            if storeview:
+                if storeview.lang_id:
+                    return {'lang': storeview.lang_id.code}
+
+    @mapping
     def street(self, record):
         value = record['street']
         if not value:
@@ -576,6 +585,7 @@ class AddressImporter(MagentoImporter):
             # but will be linked with the main res.partner
             data['openerp_id'] = partner.id
             data['type'] = 'contact'
+            data['lang'] = partner.lang
         else:
             data['parent_id'] = partner.id
             data['lang'] = partner.lang

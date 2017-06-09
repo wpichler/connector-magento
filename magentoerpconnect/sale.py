@@ -879,10 +879,14 @@ class SaleOrderImporter(MagentoImporter):
                                   parent_partner=partner))
             return address_bind.openerp_id.id
 
+        # Copy store id to billing address record - so the language can get set correctly
+        record['billing_address']['store_id'] = record['store_id']
         billing_id = create_address(record['billing_address'])
 
         shipping_id = None
         if record['shipping_address']:
+            # Copy store id to shipping address record - so the language can get set correctly
+            record['shipping_address']['store_id'] = record['store_id']
             shipping_id = create_address(record['shipping_address'])
 
         self.partner_id = partner.id
