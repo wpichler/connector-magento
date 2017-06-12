@@ -189,6 +189,21 @@ class MagentoImporter(Importer):
         except IDMissingInBackend:
             return _('Record does no longer exist in Magento')
 
+        _logger.info("Current env args: %r", self.env.args)
+        if 'store_id' in self.magento_record:
+            storeview_binder = self.binder_for('magento.storeview')
+            # we find storeview_id in store_id!
+            # (http://www.magentocommerce.com/bug-tracking/issue?issue=15886)
+            storeview = storeview_binder.to_openerp(self.magento_record['store_id'], browse=True)
+            if storeview.store_id.import_user_id:
+                _logger.info("Try to set new env uid from %r to %r", self.env.uid, storeview.store_id.import_user_id.id)
+                # This is an ugly hack - but it does work...
+                self.env.uid = storeview.store_id.import_user_id.id
+                args = list(self.env.args)
+                args[1] = storeview.store_id.import_user_id.id
+                t = tuple(args)
+                self.env.args = t
+
         skip = self._must_skip()
         if skip:
             return skip

@@ -475,6 +475,10 @@ class MagentoStore(models.Model):
         string="Storeviews",
         readonly=True,
     )
+    import_user_id = fields.Many2one(
+        comodel_name='res.users',
+        string="Import User",
+    )
     send_picking_done_mail = fields.Boolean(
         string='Send email notification on picking done',
         help="Does the picking export/creation should send "
