@@ -206,11 +206,13 @@ class MagentoImporter(Importer):
 
         skip = self._must_skip()
         if skip:
+            _logger.info("Must skip is set")
             return skip
 
         binding = self._get_binding()
 
         if not force and self._is_uptodate(binding):
+            _logger.info("Is up to date")
             return _('Already up-to-date.')
 
         # Keep a lock on this import until the transaction is committed

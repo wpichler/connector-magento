@@ -64,7 +64,7 @@ class MagentoProductProduct(models.Model):
     openerp_id = fields.Many2one(comodel_name='product.product',
                                  string='Product',
                                  required=True,
-                                 ondelete='restrict')
+                                 ondelete='cascade')
     # XXX website_ids can be computed from categories
     website_ids = fields.Many2many(comodel_name='magento.website',
                                    string='Websites',
@@ -122,6 +122,7 @@ class MagentoProductProduct(models.Model):
         for product in self:
             backends[product.backend_id] |= product
 
+        _logger.info("Got backends: %r", backends)
         for backend, products in backends.iteritems():
             self._recompute_magento_qty_backend(backend, products)
         return True
@@ -141,6 +142,7 @@ class MagentoProductProduct(models.Model):
         else:
             stock_field = 'virtual_available'
 
+        _logger.info("Stock field is %s", stock_field)
         location = backend.warehouse_id.lot_stock_id
 
         product_fields = ['magento_qty', stock_field]
@@ -155,6 +157,7 @@ class MagentoProductProduct(models.Model):
                                             backend,
                                             location,
                                             stock_field)
+                _logger.info("Old Qty: %r, New Qty: %r", product['magento_qty'], new_qty)
                 if new_qty != product['magento_qty']:
                     self.browse(product['id']).magento_qty = new_qty
 
@@ -634,7 +637,9 @@ class IsActiveProductImportMapper(ImportMapper):
         """Check if the product is active in Magento
         and set active flag in OpenERP
         status == 1 in Magento means active"""
-        return {'active': (record.get('status') == '1')}
+        # Do not set product in odoo inactive
+        return True
+        #return {'active': (record.get('status') == '1')}
 
 
 @magento
@@ -695,11 +700,15 @@ INVENTORY_FIELDS = ('manage_stock',
 
 @on_record_write(model_names='magento.product.product')
 def magento_product_modified(session, model_name, record_id, vals):
+    _logger.info("on magento.product.product write")
     if session.context.get('connector_no_export'):
+        _logger.info("connector no export is set")
         return
     if session.env[model_name].browse(record_id).no_stock_sync:
+        _logger.info("product no stock sync is set")
         return
     inventory_fields = list(set(vals).intersection(INVENTORY_FIELDS))
+    _logger.info("did the inventory fields change ? %r", inventory_fields)
     if inventory_fields:
         export_product_inventory.delay(session, model_name,
                                        record_id, fields=inventory_fields,

@@ -5,6 +5,7 @@
 
 import logging
 import xmlrpclib
+import phpserialize
 from datetime import datetime, timedelta
 import openerp.addons.decimal_precision as dp
 from openerp import models, fields, api, _
@@ -85,7 +86,15 @@ class MagentoSaleOrder(models.Model):
     store_id = fields.Many2one(related='storeview_id.store_id',
                                string='Storeview',
                                readonly=True)
+    component_mode = fields.Char('Component Mode')
 
+    @api.model
+    def create(self, vals):
+        binding = super(MagentoSaleOrder, self).create(vals)
+        if binding.component_mode == 'amazon':
+            for line in binding.order_line:
+                line.correct_amazon_tax()
+        return binding
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -200,8 +209,8 @@ class MagentoSaleOrderLine(models.Model):
     @api.model
     def create(self, vals):
         magento_order_id = vals['magento_order_id']
-        binding = self.env['magento.sale.order'].browse(magento_order_id)
-        vals['order_id'] = binding.openerp_id.id
+        sale_binding = self.env['magento.sale.order'].browse(magento_order_id)
+        vals['order_id'] = sale_binding.openerp_id.id
         binding = super(MagentoSaleOrderLine, self).create(vals)
         # FIXME triggers function field
         # The amounts (amount_total, ...) computed fields on 'sale.order' are
@@ -211,6 +220,10 @@ class MagentoSaleOrderLine(models.Model):
         # by writing again on the line.
         line = binding.openerp_id
         line.write({'price_unit': line.price_unit})
+        # We have to check here for a amazon order - in case of amazon orders we have to work on it
+        #_logger.info("Work on line for order %s with product %s", sale_binding.name, line.name)
+        #if sale_binding.component_mode == 'amazon':
+        #    binding.openerp_id.correct_amazon_tax()
         return binding
 
 
@@ -222,6 +235,17 @@ class SaleOrderLine(models.Model):
         inverse_name='openerp_id',
         string="Magento Bindings",
     )
+
+    @api.one
+    def correct_amazon_tax(self):
+        _logger.info("We do try here to correct the amazon tax handling")
+        taxes = self.tax_id.compute_all(1, self.order_id.currency_id, self.product_uom_qty, product=self.product_id,
+                                        partner=self.order_id.partner_id)
+        _logger.info("Got taxes value: %r", taxes)
+        price = self.price_unit
+        for tax in taxes['taxes']:
+            price = price / (1 + tax['amount'])
+        self.write({'price_unit': price})
 
     @api.model
     def create(self, vals):
@@ -528,6 +552,19 @@ class SaleOrderImportMapper(ImportMapper):
         return {'partner_id': partner_id}
 
     @mapping
+    def client_order_ref(self, record):
+        if 'additional_data' in record['payment']:
+            pdatastring = record['payment']['additional_data']
+            try:
+                pdata = phpserialize.loads(pdatastring)
+                if 'channel_order_id' in pdata:
+                    return {
+                        'client_order_ref': pdata['channel_order_id']
+                    }
+            except:
+                return
+
+    @mapping
     def payment(self, record):
         record_method = record['payment']['method']
         method = self.env['account.payment.mode'].search(
@@ -564,6 +601,19 @@ class SaleOrderImportMapper(ImportMapper):
         return result
 
     @mapping
+    def component_mode(self, record):
+        if 'additional_data' in record['payment']:
+            pdatastring = record['payment']['additional_data']
+            try:
+                pdata = phpserialize.loads(pdatastring)
+                if 'component_mode' in pdata:
+                    return {
+                        'component_mode': pdata['component_mode']
+                    }
+            except:
+                return
+
+    @mapping
     def sales_team(self, record):
         team = self.options.storeview.team_id
         if team:
@@ -579,7 +629,7 @@ class SaleOrderImportMapper(ImportMapper):
     def fiscal_position(self, record):
         fiscal_position = self.options.storeview.fiscal_position_id
         if fiscal_position:
-            return {'fiscal_position': fiscal_position.id}
+            return {'fiscal_position_id': fiscal_position.id}
 
     # partner_id, partner_invoice_id, partner_shipping_id
     # are done in the importer

@@ -198,9 +198,23 @@ def picking_out_done(session, model_name, record_id, picking_method):
     :param picking_method: picking_method, can be 'complete' or 'partial'
     :type picking_method: str
     """
+    _logger.info("In picking out done")
     picking = session.env[model_name].browse(record_id)
     sale = picking.sale_id
     if not sale:
+        mag_product_obj = session.env['magento.product.product']
+        # Do update the stock quantity in every backend for the products in this picking
+        pids = []
+        for line in picking.move_lines:
+            pids.append(line.product_id.id)
+        domain = [
+            ('openerp_id', 'in', pids),
+            ('type', '!=', 'service'),
+            ('no_stock_sync', '=', False),
+        ]
+        magento_products = mag_product_obj.search(domain)
+        _logger.info("Got products: %r", magento_products)
+        magento_products.recompute_magento_qty()
         return
     for magento_sale in sale.magento_bind_ids:
         session.env['magento.stock.picking'].create({
