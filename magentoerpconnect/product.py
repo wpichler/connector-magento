@@ -638,7 +638,7 @@ class IsActiveProductImportMapper(ImportMapper):
         and set active flag in OpenERP
         status == 1 in Magento means active"""
         # Do not set product in odoo inactive
-        return True
+        return {'active': True}
         #return {'active': (record.get('status') == '1')}
 
 
