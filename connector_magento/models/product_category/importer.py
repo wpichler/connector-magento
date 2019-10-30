@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo.addons.component.core import Component
-from odoo.addons.connector.components.mapper import mapping
+from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError
 
 
@@ -121,6 +121,16 @@ class ProductCategoryImportMapper(Component):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
+
+    @mapping
+    def odoo_id(self, record):
+        binder = self.binder_for()
+        categ_id = binder.to_internal(record['id'])
+        if self.backend_record.auto_create_category_on_import and not categ_id.odoo_id:
+            vals = {'name': record['name']}
+            categ_id = self.env['product.category'].create(vals)
+            return {'odoo_id': categ_id.id}
+        return {}
 
     @mapping
     def parent_id(self, record):

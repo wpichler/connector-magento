@@ -290,7 +290,7 @@ class ProductProductExportMapper(Component):
         return {'extension_attributes': data}
     
     def get_website_ids(self, record):
-        website_ids = [s.external_id for s in record.backend_id.website_ids]
+        website_ids = [s.external_id for s in record.website_ids]
         return {'website_ids': website_ids}
     
     '''
@@ -347,16 +347,16 @@ class ProductProductExportMapper(Component):
             odoo_value_ids = values_id.magento_bind_ids.filtered(
                 lambda m: m.backend_id == record.backend_id)
             for odoo_value_id in odoo_value_ids:
-                attributeCode = odoo_value_id.magento_attribute_id.attribute_code
+                attribute_code = odoo_value_id.magento_attribute_id.attribute_code
                 value = odoo_value_id.external_id.split('_')[1]
                 custom_attributes.append({
-                    'attributeCode': attributeCode,
+                    'attribute_code': attribute_code,
                     'value': value
                 })
         if record.backend_id.default_pricelist_id.discount_policy == 'without_discount' and record.with_context(
                 pricelist=record.backend_id.default_pricelist_id.id).price != record['lst_price']:
             custom_attributes.append({
-                'attributeCode': 'special_price',
+                'attribute_code': 'special_price',
                 'value': record.with_context(pricelist=record.backend_id.default_pricelist_id.id).price
             })
             record.with_context(connector_no_export=True).special_price_active = True
