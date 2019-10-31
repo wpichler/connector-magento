@@ -57,12 +57,16 @@ class MagentoProductAttribute(models.Model):
          'This attribute is already mapped to a magento backend!')
     ]
 
-    @api.model
-    def create(self, vals):
-        if 'attribute_set_ids' not in vals:
-            backend = self.env['magento.backend'].browse(vals['backend_id'])
-            vals['attribute_set_ids'] = [(4, backend.id)]
-        return super(MagentoProductAttribute, self).create(vals)
+#     This one seems to be useles. fisrt it's mixing appel and bananas (I love both)
+#     Moreover the attribute set is added to the attribute in the attribute_set import and
+#     the backend is set in the mapper of the attribute
+
+#     @api.model
+#     def create(self, vals):
+#         if 'attribute_set_ids' not in vals:
+#             backend = self.env['magento.backend'].browse(vals['backend_id'])
+#             vals['attribute_set_ids'] = [(4, backend.id)]
+#         return super(MagentoProductAttribute, self).create(vals)
 
     @api.multi
     def export_product_attribute_button(self):
