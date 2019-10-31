@@ -252,9 +252,12 @@ class ProductImportMapper(Component):
 
     @mapping
     def product_name(self, record):
-        if record['visibility'] == 1:
-            # This is a product variant - so the name got set on the template !
-            return {}
+        # Name is set on product template on configurables 
+        #see _create and _update methods in this file
+        #if record['visibility'] == 1:
+#             # This is a product variant - so the name got set on the template !
+#             return {}
+#
         return {
             'name': record.get('name', ''),
         }
@@ -507,7 +510,7 @@ class ProductImporter(Component):
             data['product_tmpl_id'] = self._binding_template_id.odoo_id.id
             data['magento_configurable_id'] = self._binding_template_id.id
             # Name is set on product template on configurables
-            if 'name' in data:
+            if 'name' in data and self._binding_template_id:
                 del data['name']
         super(ProductImporter, self)._update(binding, data)
         return
@@ -517,7 +520,7 @@ class ProductImporter(Component):
             data['product_tmpl_id'] = self._binding_template_id.odoo_id.id
             data['magento_configurable_id'] = self._binding_template_id.id
             # Name is set on product template on configurables
-            if 'name' in data:
+            if 'name' in data and self._binding_template_id:
                 del data['name']
         binding = super(ProductImporter, self)._create(data)
         self.backend_record.add_checkpoint(binding)
