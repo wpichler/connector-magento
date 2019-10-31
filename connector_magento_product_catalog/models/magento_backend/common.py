@@ -45,4 +45,10 @@ class MagentoBackend(models.Model):
         string='Export products from date',
     )
     default_attribute_set_id = fields.Many2one('magento.product.attributes.set', string="Default Attribute Set id")
+    default_magento_status = fields.Selection([
+        ('2', 'Disabled'),
+        ('1', 'Enabled'),
+    ], default='2', string="Default Status", 
+        help='''Prefer Disable when working with Odoo first 
+        so that teams could check the product coherence in magento before publication''')
 
