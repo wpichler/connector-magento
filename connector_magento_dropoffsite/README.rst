@@ -6,7 +6,9 @@
 Magento Connector - Delivery with drop-off site
 ====================================================
 
-Glue module between Magento Connector and Partner first name / last name.
+Glue module between Magento Connector and delivery dropoff site.
+
+The entry point 'relaiscolis/getRelaisInfo' needs to exist in your API
 
 Installation
 ============
