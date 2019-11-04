@@ -18,9 +18,8 @@ class MagentoProductProductBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if record.backend_id.product_synchro_strategy == 'magento_first': 
-                continue    
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        if not record.backend_id.product_synchro_strategy == 'magento_first': 
+            record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
 
     def on_record_unlink(self, record):
@@ -54,8 +53,6 @@ class MagentoProductPricelistItemUpdateListener(Component):
     _apply_on = ['product.pricelist.item']
 
     def update_products(self, record):
-        if self.backend_id.product_synchro_strategy == 'magento_first': 
-                return
         if record.applied_on == '1_product':
             for binding in record.product_tmpl_id.magento_template_bind_ids:
                 if binding.backend_id.product_synchro_strategy == 'magento_first': 
