@@ -13,6 +13,7 @@ class MagentoProductProductExportListener(Component):
     def on_record_write(self, record, fields=None):
         for binding in record.magento_bind_ids:
             # First - do update the custom attribute values
-            for key in record:
-                binding.check_field_mapping(key, record)
-        super(MagentoProductProductExportListener, self).on_record_write(record, fields)
+            binding.recheck_field_mapping(record)
+            if binding.backend_id.product_synchro_strategy == 'magento_first': 
+                continue    
+            super(MagentoProductProductExportListener, self).on_record_write(record, fields=fields)
