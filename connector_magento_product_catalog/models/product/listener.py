@@ -18,8 +18,10 @@ class MagentoProductProductBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if not record.backend_id.product_synchro_strategy == 'magento_first': 
-            record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        if record.backend_id.product_synchro_strategy == 'magento_first': 
+                continue    
+        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+
 
     def on_record_unlink(self, record):
         if not record.backend_id.product_synchro_strategy == 'magento_first':
