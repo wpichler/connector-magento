@@ -47,6 +47,8 @@ class MagentoProductPricelistItemUpdateListener(Component):
     _apply_on = ['product.pricelist.item']
 
     def update_products(self, record):
+        if self.backend_id.product_synchro_strategy == 'magento_first': 
+                return
         if record.applied_on == '1_product':
             for binding in record.product_tmpl_id.magento_template_bind_ids:
                 binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
