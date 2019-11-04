@@ -13,20 +13,21 @@ class MagentoProductProductBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_create(self, record, fields=None):
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        if not record.backend_id.product_synchro_strategy == 'magento_first':
+            record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        if record.backend_id.product_synchro_strategy == 'magento_first': 
-                continue    
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        if not record.backend_id.product_synchro_strategy == 'magento_first': 
+            record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     def on_record_unlink(self, record):
-        with record.backend_id.work_on(record._name) as work:
-            external_id = work.component(usage='binder').to_external(record)
-            if external_id:
-                record.with_delay(identity_key=identity_exact).export_delete_record(record.backend_id,
-                                                         external_id)
+        if not record.backend_id.product_synchro_strategy == 'magento_first':
+            with record.backend_id.work_on(record._name) as work:
+                external_id = work.component(usage='binder').to_external(record)
+                if external_id:
+                    record.with_delay(identity_key=identity_exact).export_delete_record(record.backend_id,
+                                                             external_id)
 
 
 class MagentoProductProductExportListener(Component):
@@ -40,6 +41,8 @@ class MagentoProductProductExportListener(Component):
             # We do ignore image field
             del fields['image']
         for binding in record.magento_bind_ids:
+            if binding.backend_id.product_synchro_strategy == 'magento_first':
+                continue
             binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
 
 
@@ -49,16 +52,18 @@ class MagentoProductPricelistItemUpdateListener(Component):
     _apply_on = ['product.pricelist.item']
 
     def update_products(self, record):
-        if self.backend_id.product_synchro_strategy == 'magento_first': 
-                return
         if record.applied_on == '1_product':
             for binding in record.product_tmpl_id.magento_template_bind_ids:
+                if binding.backend_id.product_synchro_strategy == 'magento_first': 
+                    continue
                 binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
                 for variant in record.product_tmpl_id.product_variant_ids:
                     for binding in variant.magento_bind_ids:
                         binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
         elif record.applied_on == '0_product_variant':
             for binding in record.product_id.magento_bind_ids:
+                if binding.backend_id.product_synchro_strategy == 'magento_first': 
+                    continue
                 binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
