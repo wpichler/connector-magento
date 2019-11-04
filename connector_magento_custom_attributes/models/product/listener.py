@@ -14,4 +14,6 @@ class MagentoProductProductExportListener(Component):
         for binding in record.magento_bind_ids:
             # First - do update the custom attribute values
             binding.recheck_field_mapping(record)
+            if binding.backend_id.product_synchro_strategy == 'magento_first': 
+                continue    
             super(MagentoProductProductExportListener, self).on_record_write(record, fields=fields)
