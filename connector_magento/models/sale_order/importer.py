@@ -182,6 +182,9 @@ class SaleOrderImportMapper(Component):
         # if gift_cert_amount is zero
         if not record.get('discount_amount'):
             return values
+        # If discount_percent is set - then we did already used this in the line mapping
+        if record.get('discount_percent', 0) > 0:
+            return values
         amount = float(record['discount_amount'])
         name = 'Gift'
         if 'discount_description' in record:
@@ -356,29 +359,6 @@ class SaleOrderImporter(Component):
         resource['items'] = top_items
         return resource
 
-    def _create_discount_item(self, resource):
-        """
-        Method that does create an extra discount item(s) if discount is given
-
-        """
-        items = []
-
-        discount = {}
-        for item in resource['items']:
-            if 'discount_percent' in item and 'tax_percent' in item:
-                key = "%s_%s" % (item['discount_percent'], item['tax_percent'])
-            elif 'discount_percent' in item:
-                key = item['discount_percent']
-            if key not in discount:
-                discount[key] = {
-                    'tax_percent'
-                }
-
-            items.append(item)
-
-        resource['items'] = items
-        return resource
-
     def _import_customer_group(self, group_id):
         self._import_dependency(group_id, 'magento.res.partner.category')
 
@@ -444,7 +424,6 @@ class SaleOrderImporter(Component):
             importer.run_with_data(payment, order_binding=binding)
 
     def _after_import(self, binding):
-        #self._create_discount_item(binding)
         self._link_parent_orders(binding)
         self._link_messages(binding)
         self._import_payment(binding)
