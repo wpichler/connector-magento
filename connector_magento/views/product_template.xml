@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+
+		<record id="product_template_form_view" model="ir.ui.view">
+			<field name="name">product.template.form</field>
+			<field name="model">product.template</field>
+			<field name="inherit_id" ref="product.product_template_only_form_view" />
+			<field name="arch" type="xml">
+				<field name="attribute_line_ids" position="before">
+					<label for="auto_create_variants"/>
+					<field name="auto_create_variants"/>
+				</field>
+			</field>
+		</record>
+
+		<record id="magento_product_template_form_view" model="ir.ui.view">
+			<field name="name">product.template.form</field>
+			<field name="model">product.template</field>
+			<field name="inherit_id" ref="connector_base_product.product_template_common_form" />
+			<field name="arch" type="xml">
+				<page name="connector" position="attributes">
+					<attribute name="invisible">0</attribute>
+				</page>
+				<page name="connector" position="inside">
+					<field name="id" invisible="1"/>
+					<label for="magento_template_bind_ids"/>
+					<field name="magento_template_bind_ids" nolabel="1" context="{'default_odoo_id': id}"/>
+					<label for="magento_bind_ids"/>
+					<field name="magento_bind_ids" nolabel="1" readonly="1"/>
+
+				</page>
+				<field name="type" position="after">
+					<field name="magento_default_code" />
+				</field>
+			</field>
+		</record>
+
+
+		<record id="view_magento_product_template_form" model="ir.ui.view">
+			<field name="name">magento.product.template.form</field>
+			<field name="model">magento.product.template</field>
+			<field name="arch" type="xml">
+				<form string="Magento Configurable Product">
+					<header>
+						<button type="object" name="sync_from_magento" string="Force Sync Magento -> Odoo"/>
+						<button type="object" name="run_sync_from_magento" string="Instead Force Sync Magento -> Odoo" groups="base.group_no_one"/>
+						<button type="object" name="open_magento_backend" string="Open in Magento Backend" class="fa fa-link"/>
+						<button type="object" name="open_magento_frontend" string="Open in Magento Frontend" class="fa fa-link"/>
+					</header>
+					<sheet>
+						<field name="image_medium" widget="image" class="oe_avatar"
+							readonly="1" />
+						<div class="oe_title">
+
+							<h1>
+								<field name="name" placeholder="Product Name" readonly="1" />
+							</h1>
+
+						</div>
+						<div class="oe_button_box" name="button_box">
+
+						</div>
+						<group name="general">
+							<field name="backend_id" />
+							<field name="magento_name" />
+							<field name="magento_status" />
+							<field name="magento_price" />
+							<field name="external_id" readonyl="1"/>
+							<field name="magento_url_key"/>
+							<field name="magento_id" readonyl="1" />
+							<field name="odoo_id" readonly="1"/>
+							<field name="website_ids" readonly="0" widget="many2many_tags"/>
+							<field name="attribute_set_id"/>
+							<field name="created_at" readonly="1" />
+							<field name="updated_at" readonly="1" />
+							<field name="magento_product_category_ids" widget="many2many_tags"/>
+							<field name="magento_product_position_ids" widget="many2many_tags"/>
+						</group>
+						<notebook>
+							<page name="variants" string="Variants">
+								<label for="magento_product_ids"/>
+								<field name="magento_product_ids" nolabel="1"/>
+							</page>
+							<page name="images" string="Images">
+								<label for="magento_image_bind_ids"/>
+								<field name="magento_image_bind_ids" nolabel="1"/>
+							</page>
+							<page name="attributes" string="Attributes">
+								<label for="magento_template_attribute_line_ids"/>
+								<field name="magento_template_attribute_line_ids" nolabel="1">
+									<tree>
+										<field name="label"/>
+										<field name="position"/>
+										<field name="external_id"/>
+										<field name="magento_attribute_id"/>
+										<field name="magento_template_id"/>
+									</tree>
+								</field>
+							</page>
+							<page name="stock" string="Stock Values">
+								<label for="magento_stock_item_ids"/>
+								<field name="magento_stock_item_ids" nolabel="1"/>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+		<record id="magento_product_template_search_view" model="ir.ui.view">
+			<field name="name">magento.product.template.search</field>
+			<field name="model">magento.product.template</field>
+			<field name="arch" type="xml">
+				<search string="Search Magento Configurables">
+					<field name="name"/>
+					<field name="external_id" string="SKU"/>
+					<field name="magento_id" string="Magento ID"/>
+					<group expand="0" string="Group By...">
+						<filter string="Backend"
+								icon="terp-folder-orange"
+								domain="[]"
+								context="{'group_by':'backend_id'}"/>
+						<filter string="Attribute Set"
+								icon="terp-folder-orange"
+								domain="[]"
+								context="{'group_by':'attribute_set_id'}"/>
+				   </group>
+			   </search>
+			</field>
+		</record>
+
+
+		<record id="magento_product_template_tree_view"
+			model="ir.ui.view">
+			<field name="name">magento.product.template.tree</field>
+			<field name="model">magento.product.template</field>
+
+			<field name="arch" type="xml">
+				<tree>
+					<field name="external_id" />
+					<field name="display_name" />
+					<field name="backend_id" />
+					<field name="magento_id" />
+					<field name="magento_status" />
+					<field name="attribute_set_id"/>
+					<field name="sync_date" />
+				</tree>
+			</field>
+		</record>
+
+
+	</data>
+</openerp>

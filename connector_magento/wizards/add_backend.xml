@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright <YEAR(S)> <AUTHOR(S)> License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+
+<odoo>
+	<data>
+
+		<record id="wizard_add_backend_view_form" model="ir.ui.view">
+			<field name="name">Bind an Object to a backend</field>
+			<field name="model">connector_magento.add_backend.wizard</field>
+			<field name="arch" type="xml">
+				<form string="Export to magento">
+					<p>Choose the backend you want to bind to</p>
+					<field name="backend_id" />
+					<field name="model" invisible="1"/>
+					<field name="attributes_to_export_ids" attrs="{'invisible': [('model', '!=', 'product.attribute')]}"/>
+
+					<footer>
+						<button name="action_accept" type="object" string="Export" class="oe_highlight" />
+						or
+						<button special="cancel" string="Cancel" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="wizard_add_backend_action"
+			model="ir.actions.act_window">
+			<field name="name">Add product to Backend</field>
+			<field name="res_model">connector_magento.add_backend.wizard</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="target">new</field>
+		</record>
+
+	</data>
+</odoo>

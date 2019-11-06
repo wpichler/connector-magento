@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sale_order_magento_form" model="ir.ui.view">
+        <field name="name">sale.order.magento.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="connector_ecommerce.view_order_connector_form"/>
+        <field name="arch" type="xml">
+            <page name="connector" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </page>
+            <page name="connector" position="inside">
+                <group string="Magento Payments">
+                    <field name="magento_payment_ids" nolabel="1"/>
+                </group>
+                <group string="Magento Bindings">
+                    <field name="magento_bind_ids" nolabel="1"/>
+                </group>
+            </page>
+        </field>
+    </record>
+
+    <record id="view_magento_sale_order_form" model="ir.ui.view">
+        <field name="name">magento.sale.order.form</field>
+        <field name="model">magento.sale.order</field>
+        <field name="arch" type="xml">
+            <form string="Magento Sales Orders"
+                    create="false" delete="false">
+                <header>
+                    <field name="magento_backend_url" widget="url" text="Open in Magento Backend" class="btn fa fa-link"/>
+                </header>
+                <sheet>
+                    <div>
+
+                    </div>
+                    <group>
+                        <group>
+                            <field name="backend_id"/>
+                            <field name="external_id"/>
+                            <field name="odoo_id"/>
+                            <field name="store_id"/>
+                            <field name="storeview_id"/>
+                        </group>
+                        <group>
+                            <field name="state" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="partner_invoice_id" readonly="1"/>
+                            <field name="partner_shipping_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="total_amount" readonly="1"/>
+                            <field name="total_amount_tax" readonly="1"/>
+                            <field name="webshop_coupon_code" readonly="1"/>
+
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="orderlines" string="Orderlines">
+                            <label for="magento_order_line_ids"/>
+                            <field name="magento_order_line_ids" nolabel="1"/>
+                            <label for="magento_order_history_ids"/>
+                            <field name="magento_order_history_ids" nolabel="1">
+                                <tree>
+                                    <field name="entity_name"/>
+                                    <field name="status"/>
+                                    <field name="body"/>
+                                    <field name="is_customer_notified"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="payments" string="Payments">
+                            <label for="magento_payment_ids"/>
+                            <field name="magento_payment_ids" nolabel="1"/>
+                        </page>
+                        <page name="pickings" string="Pickings">
+                            <label for="magento_picking_ids"/>
+                            <field name="magento_picking_ids" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_magento_sale_order_tree" model="ir.ui.view">
+        <field name="name">magento.sale.order.tree</field>
+        <field name="model">magento.sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Magento Sales Orders"
+                    create="false" delete="false" order_by="date_order desc">
+                <field name="backend_id"/>
+                <field name="store_id"/>
+                <field name="storeview_id"/>
+                <field name="date_order"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="total_amount_tax"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

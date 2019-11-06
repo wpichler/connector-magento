@@ -1,0 +1,82 @@
+@charset "utf-8";
+.dashboard_container {
+  width: 100%;
+}
+
+.dashboard_main {
+    background: #7c7bad;
+    color: #fff !important;
+    text-align: center !important;
+    display: block;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.dashboard_main p{
+    margin: 0px;
+}
+
+.dashboard_main:hover {
+    background: #8071ad;
+}
+
+.dashboard_main .o_highlight{
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.dashboard_actions {
+    text-align: center;
+}
+
+.dashboard_actions h3{
+    margin-top: 0px;
+}
+
+.dashboard_action {
+    float: left;
+    margin: 10px;
+    border: solid #f26322 1px;
+    padding: 10px;
+    min-width: 300px;
+    min-height: 500px;
+    background-color: #ffffff;
+    background-image:url("../img/magento_logo_large.png");
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.dashboard-action-header {
+    background-color:#f26322;
+    color:white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+.dashboard-action-smart-button-nr {
+    font-size: 1.3em;
+    margin-bottom:0px;
+}
+.dashboard-action-smart-action-button a {
+    background-color:#007335;
+}
+.o_highlight {
+  color: #fff;
+}
+
+.dashboard_image {
+  width: 19%;
+  display:inline-block;
+  vertical-align: top;
+}
+
+.dashboard_image img{
+  margin: 0 auto;
+  display: block;
+
+}
+
+.dashboard_actions {
+  display: inline-block;
+  width: 100%;
+}

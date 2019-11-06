@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<record id="product_normal_form_view" model="ir.ui.view">
+		<field name="name">product.product.form</field>
+		<field name="model">product.product</field>
+		<field name="inherit_id" ref="connector_base_product.product_normal_form_view" />
+		<field name="arch" type="xml">
+			<page name="connector" position="attributes">
+				<attribute name="invisible">0</attribute>
+			</page>
+			<label for="magento_template_bind_ids" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</label>
+			<field name="magento_template_bind_ids" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</field>
+			<page name="connector" position="inside">
+				<label for="magento_bind_ids"/>
+				<field name="magento_bind_ids" nolabel="1"/>
+			</page>
+		</field>
+	</record>
+ 
+	<record id="view_magento_product_form" model="ir.ui.view">
+		<field name="name">magento.product.product.form</field>
+		<field name="model">magento.product.product</field>
+		<field name="arch" type="xml">
+			<form string="Magento Product">
+				<header>
+					<button type="object" name="sync_from_magento" string="Force Sync Magento -> Odoo"/>
+					<button type="object" name="run_sync_from_magento" string="Instead Force Sync Magento -> Odoo" groups="base.group_no_one"/>
+					<button type="object" name="open_magento_backend" string="Open in Magento Backend" class="fa fa-link"/>
+					<button type="object" name="open_magento_frontend" string="Open in Magento Frontend" class="fa fa-link"/>
+				</header>
+				<sheet>
+
+					<field name="image_medium" widget="image" class="oe_avatar"
+						readonly="1" />
+					<div class="oe_title">
+
+						<h1>
+							<field name="name" placeholder="Product Name" readonly="1" />
+						</h1>
+						<p t-if="magento_last_error_string" style="color:red;">
+							Last Error: <span t-field="magento_last_error_string"/> at <span t-field="magento_last_error_timestamp"/>
+						</p>
+					</div>
+					<div class="oe_button_box" name="button_box">
+
+					</div>
+					<group name="general">
+						<field name="backend_id" />
+						<field name="no_stock_sync"/>
+						<field name="magento_name" />
+						<field name="magento_status" />
+						<field name="attribute_set_id"/>
+						<field name="magento_price" />
+						<field name="external_id" string="Magento SKU"/>
+						<field name="magento_url_key"/>
+						<field name="magento_id" string="Magento ID"/>
+						<field name="odoo_id" string="Odoo ID"/>
+                        <field name="website_ids" readonly="0" widget="many2many_tags"/>
+						<field name="created_at" readonly="1" />
+						<field name="updated_at" readonly="1" />
+						<!-- <field name="product_type" readonly="1" /> -->
+						<field name="magento_configurable_id"/>
+						<field name="magento_product_category_ids" widget="many2many_tags"/>
+						<field name="magento_product_position_ids" widget="many2many_tags"/>
+					</group>
+					<notebook>
+						<page name="images" string="Images">
+							<label for="magento_image_bind_ids"/>
+							<field name="magento_image_bind_ids" nolabel="1"/>
+						</page>
+						<page name="stock" string="Stock Values">
+							<label for="magento_stock_item_ids"/>
+							<field name="magento_stock_item_ids" nolabel="1"/>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<record id="magento_product_product_search_view" model="ir.ui.view">
+		<field name="name">magento.product.product.search</field>
+		<field name="model">magento.product.product</field>
+		<field name="arch" type="xml">
+            <search string="Search Magento Products">
+                <field name="name"/>
+                <field name="external_id" string="SKU"/>
+                <field name="magento_id" string="Magento ID"/>
+                <field name="default_code"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Backend"
+                            icon="terp-folder-orange"
+                            domain="[]"
+                            context="{'group_by':'backend_id'}"/>
+               </group>
+           </search>
+		</field>
+	</record>
+
+	<record id="magento_product_product_tree_view"
+		model="ir.ui.view">
+		<field name="name">magento.product.product.tree</field>
+		<field name="model">magento.product.product</field>
+
+		<field name="arch" type="xml">
+			<tree>
+				<field name="external_id" />
+				<field name="display_name" />
+				<field name="backend_id" />
+				<field name="magento_status" />
+				<field name="sync_date" />
+				<button name="sync_from_magento" type="object" string="Force Sync Magento -> Odoo" />
+			</tree>
+		</field>
+	</record>
+
+</odoo>

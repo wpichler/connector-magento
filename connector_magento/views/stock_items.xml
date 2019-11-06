@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_magento_stock_item_out_form" model="ir.ui.view">
+        <field name="name">magento.stock.item.form</field>
+        <field name="model">magento.stock.item</field>
+        <field name="arch" type="xml">
+            <form string="Magento Stock Item"
+                    create="false" delete="false">
+				<header>
+					<button type="object" name="sync_from_magento" string="Force Sync Magento -> Odoo"/>
+                    <button type="object" name="run_sync_from_magento" string="Force instead Sync Magento -> Odoo" groups="base.group_no_one"/>
+					<button type="object" name="sync_to_magento" string="Force Sync Odoo -> Magento"/>
+                    <button type="object" name="run_sync_to_magento" string="Force instead Sync Odoo -> Magento" groups="base.group_no_one"/>
+				</header>
+                <sheet>
+                    <group>
+                        <field name="backend_id"/>
+                        <field name="external_id"/>
+                        <field name="magento_warehouse_id"/>
+                        <field name="magento_product_binding_id"/>
+                        <field name="magento_product_template_binding_id"/>
+                        <field name="qty"/>
+                        <field name="calculated_qty"/>
+                        <field name="should_export"/>
+                        <field name="min_sale_qty"/>
+                        <field name="min_qty"/>
+                        <field name="is_qty_decimal"/>
+                        <field name="is_in_stock"/>
+                        <field name="backorders"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_magento_stock_item_out_tree" model="ir.ui.view">
+        <field name="name">magento.stock.item.tree</field>
+        <field name="model">magento.stock.item</field>
+        <field name="arch" type="xml">
+            <tree string="Magento Delivery Order"
+                    create="false" delete="false">
+                <field name="backend_id"/>
+                <field name="external_id"/>
+                <field name="magento_product_binding_id"/>
+                <field name="magento_product_template_binding_id"/>
+                <field name="qty"/>
+                <field name="min_sale_qty"/>
+                <field name="min_qty"/>
+                <field name="is_qty_decimal"/>
+                <field name="is_in_stock"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>
