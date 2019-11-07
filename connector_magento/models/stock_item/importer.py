@@ -19,6 +19,10 @@ class MagentoStockItemImportMapper(Component):
         ('is_qty_decimal', 'is_qty_decimal'),
         ('is_in_stock', 'is_in_stock'),
         ('min_qty', 'min_qty'),
+        ('use_config_min_qty', 'use_config_min_qty'),
+        ('manage_stock', 'manage_stock'),
+        ('use_config_backorders', 'use_config_backorders'),
+        ('use_config_manage_stock', 'use_config_manage_stock'),
         ('item_id', 'external_id'),
     ]
     
