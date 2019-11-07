@@ -27,6 +27,10 @@ class MagentoStockItemExportMapper(Component):
     direct = [
         ('min_sale_qty', 'min_sale_qty'),
         ('is_qty_decimal', 'is_qty_decimal'),
+        ('use_config_min_qty', 'use_config_min_qty'),
+        ('manage_stock', 'manage_stock'),
+        ('use_config_backorders', 'use_config_backorders'),
+        ('use_config_manage_stock', 'use_config_manage_stock'),
     ]
 
     @mapping
