@@ -28,6 +28,10 @@
                         <field name="is_qty_decimal"/>
                         <field name="is_in_stock"/>
                         <field name="backorders"/>
+                        <field name="use_config_backorders"/>
+                        <field name="use_config_min_qty"/>
+                        <field name="manage_stock"/>
+                        <field name="use_config_manage_stock"/>
                     </group>
                 </sheet>
             </form>
