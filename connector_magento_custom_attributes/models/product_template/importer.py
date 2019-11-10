@@ -32,7 +32,7 @@ class ProductTemplateImportMapper(Component):
                 # We do ignore attributes which do create a variant
                 continue
             # Check for update or create
-            mcav = self.env['magento.custom.attribute.values']
+            mcav = self.env['magento.custom.template.attribute.values']
             if 'binding' in self.options:
                 mcav = self.options.binding.magento_template_attribute_line_ids.filtered(lambda line: line.attribute_id==mattribute and not line.store_view_id)
             
