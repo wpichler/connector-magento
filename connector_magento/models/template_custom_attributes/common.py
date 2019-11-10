@@ -122,6 +122,49 @@ class MagentoCustomAttribute(models.Model):
             
             res.product_template_id.with_context(no_update=True).write(custom_vals)
         
+    @api.multi
+    def _get_field_values_from_magento_type(self, mattribute, attribute):
+        """ Check Magento ftontend type and provide adequat values
+        @param dict attribute : 2 entry dictionnary with attribute code and value
+        """
+        att_id = mattribute
+        value = attribute['value']
+        custom_vals = {
+            'attribute_id': att_id.id,
+            'attribute_text': value,
+            'attribute_select': False,
+            'attribute_multiselect': False,
+        }
+
+        if att_id.frontend_input == 'boolean':
+            custom_vals.update({'attribute_text': str(int(value))})
+        if att_id.frontend_input == 'select':
+            value_ids = att_id.magento_attribute_value_ids
+            select_value = value_ids.filtered(
+                lambda v: v.external_id.split('_')[1] == value)
+
+            custom_vals.update({
+                'attribute_text': False,
+                'attribute_multiselect': False,
+                'attribute_select': select_value.magento_bind_ids[0].id or False
+            })
+        if att_id.frontend_input == 'multiselect':
+            if not isinstance(value, list ):
+                value = [value]
+            value_ids = att_id.magento_attribute_value_ids
+            select_value_ids = value_ids.filtered(
+                lambda v:
+                    v.external_id.split('_')[1] in value
+            )
+            custom_vals.update({
+                'attribute_text': False,
+                'attribute_select': False,
+                'attribute_multiselect': [(6, False, [v.id for v in select_value_ids])]
+            })
+   
+        return custom_vals    
+        
+    
     _sql_constraints = [
         ('custom_attr_unique_product_template_uniq', 
          'unique(attribute_id, product_template_id, backend_id)', 
