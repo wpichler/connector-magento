@@ -34,19 +34,16 @@ class ProductImportMapper(Component):
             # Check for update or create
             mcav = self.env['magento.custom.attribute.values']
             if 'binding' in self.options:
-                mcav = self.options.binding.magento_attribute_line_ids.filtered(lambda line: line.attribute_id==mattribute and not line.store_view_id)
+                mcav = self.options.binding.magento_attribute_line_ids.filtered(
+                    lambda line: line.attribute_id==mattribute and not line.store_view_id)
+            
+            vals = mcav._get_field_values_from_magento_type(mattribute, attribute)
             if not mcav:
-                vals = {
-                    'attribute_id': mattribute.id,
-                    'store_view_id': False,
-                    'attribute_text': attribute['value']
-                }
                 magento_attribute_line_ids.append((0, False, vals))
             else:
-                vals = {
-                    'attribute_text': attribute['value']
-                }
                 magento_attribute_line_ids.append((1, mcav.id, vals))
         return {
             'magento_attribute_line_ids': magento_attribute_line_ids
         }
+        
+    
