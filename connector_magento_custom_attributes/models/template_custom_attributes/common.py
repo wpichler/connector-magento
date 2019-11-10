@@ -25,7 +25,6 @@ class MagentoCustomAttribute(models.Model):
         """ Check Magento ftontend type and provide adequat values
         @param dict attribute : 2 entry dictionnary with attribute code and value
         """
-        self.ensure_one()
         att_id = mattribute
         value = attribute['value']
         custom_vals = {
