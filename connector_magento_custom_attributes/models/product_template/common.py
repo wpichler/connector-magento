@@ -58,15 +58,14 @@ class MagentoProductTemplate(models.Model):
         cstm_att_mdl = self.env['magento.custom.template.attribute.values']
         for att in attributes:
             vals = {
-                #                 'backend_id': self.backend_id.id,
                 'magento_product_template_id': mg_prod_id.id,
                 'attribute_id': att.id,
-                #                 'magento_attribute_type': att.frontend_input,
-                #                 'product_template_id': self.odoo_id.id,
-                #                 'odoo_field_name': att.odoo_field_name.id or False
             }
             cst_value = cstm_att_mdl.with_context(no_update=True).create(vals)
             if cst_value.odoo_field_name.id:
+                _logger.debug(
+                    'Prepare check for Magento Value field name mapping %s' % 
+                    cst_value.odoo_field_name)
                 mg_prod_id.check_field_mapping(
                     cst_value.odoo_field_name.name,
                     mg_prod_id[cst_value.odoo_field_name.name])
@@ -77,6 +76,9 @@ class MagentoProductTemplate(models.Model):
                 cst_value_id = mg_prod_id.magento_template_attribute_value_ids.filtered(
                     lambda v: v.attribute_id.attribute_code == cst['attribute_code'])
                 if cst_value_id.odoo_field_name.id:
+                    _logger.debug(
+                        'Prepare check for Magento Value field name mapping %s' % 
+                        cst_value.odoo_field_name)
                     mg_prod_id.check_field_mapping(
                         cst_value_id.odoo_field_name.name,
                         cst['value']
@@ -84,9 +86,6 @@ class MagentoProductTemplate(models.Model):
                 elif cst_value_id.id:
                     cst_value_id.write({
                         'attribute_text': cst['value']})
-
-        #         if mg_prod_id.odoo_id.product_variant_count > 1 :
-        #             self.env['magento.template.attribute.line']._update_attribute_lines(mg_prod_id)
 
         return mg_prod_id
 
