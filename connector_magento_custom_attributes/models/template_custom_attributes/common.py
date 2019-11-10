@@ -13,89 +13,19 @@ _logger = logging.getLogger(__name__)
 
     
 class MagentoCustomAttribute(models.Model):
-    _name = 'magento.custom.attribute.values'
-    
-     
+    _inherit = 'magento.custom.template.attribute.values'
+         
     """
-    This class deal with customs Attributes
+    This class deal with customs Attributes for templates
+    Has to be merged / Refactor with the one in connector_magento
     """
-#     
-    magento_product_id = fields.Many2one(comodel_name="magento.product.product",
-                                string="Magento Product",
-                                )
-    
-    product_id = fields.Many2one(comodel_name="product.product",
-                                string="Product",
-                                related="magento_product_id.odoo_id",
-                                required=True)
- 
-    backend_id = fields.Many2one(comodel_name="magento.backend",
-                                      string="Magento Backend",
-                                      related="magento_product_id.backend_id"
-                                      )
-     
-    attribute_id = fields.Many2one(comodel_name="magento.product.attribute",
-                                      string="Magento Product Attribute",
-                                      required=True,
-#                                       domain=[('backend_id', '=', backend_id)]
-                                      )
-    
-    magento_attribute_type = fields.Selection(
-         related="attribute_id.frontend_input",
-         store=True
-        )
-    
-    attribute_text = fields.Char(string='Magento Text / Value',
-                                    translate=True
-                                    )
-    
-    attribute_select = fields.Many2one(string='Magento Select / Value',
-                                    comodel_name="magento.product.attribute.value",
-                                    domain=[('magento_attribute_type', '=', 'select')]
-                                    )
-    
-    attribute_multiselect = fields.Many2many(string='Magento MultiSelect / Value',
-                                    relation="magento_custom_attributes_rel",
-                                    comodel_name="magento.product.attribute.value",
-                                    domain=[('magento_attribute_type', '=', 'multiselect')]
-                                    )
-    
-    
-    odoo_field_name = fields.Many2one(
-        comodel_name='ir.model.fields', 
-        related="attribute_id.odoo_field_name", 
-        string="Odoo Field Name",
-        store=True) 
-    
-    store_view_id = fields.Many2one('magento.storeview')
-    _sql_constraints = [
-        ('magento_uniq', 'unique(backend_id, attribute_id, store_view_id, magento_product_id)',
-         'A binding already exists with the same Magento ID.'),
-    ]
-
-    @api.model
-    def create(self, vals):
-        res = super(MagentoCustomAttribute,self).create(vals)
-        res.check_attribute_id()
-        return res
-    
-    
-    @api.multi
-    def write(self, vals):
-        org_vals = vals.copy()
-        res = super(MagentoCustomAttribute, self).write(vals)
-        for cv in self:
-            cv.check_attribute_id()
-        return res
 
     @api.multi
     def _get_field_values_from_magento_type(self, mattribute, attribute):
         """ Check Magento ftontend type and provide adequat values
-        @param mattribute: Object Magento product attribute 
         @param dict attribute : 2 entry dictionnary with attribute code and value
         """
         self.ensure_one()
-
         att_id = mattribute
         value = attribute['value']
         custom_vals = {
@@ -104,9 +34,7 @@ class MagentoCustomAttribute(models.Model):
             'attribute_select': False,
             'attribute_multiselect': False,
         }
-        
-#         if att_id.frontend_input in ['price', 'weight']:
-#             custom_vals.update({'attribute_text': float(value)})
+
         if att_id.frontend_input == 'boolean':
             custom_vals.update({'attribute_text': str(int(value))})
         if att_id.frontend_input == 'select':
@@ -115,7 +43,7 @@ class MagentoCustomAttribute(models.Model):
                 lambda v: v.external_id.split('_')[1] == value)
 
             custom_vals.update({
-                'attribute_text': '',
+                'attribute_text': False,
                 'attribute_multiselect': False,
                 'attribute_select': select_value.magento_bind_ids[0].id or False
             })
