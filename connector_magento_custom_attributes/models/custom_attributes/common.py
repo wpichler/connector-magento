@@ -127,7 +127,7 @@ class MagentoCustomAttribute(models.Model):
                     v.external_id.split('_')[1] in value
             )
             custom_vals.update({
-                'attribute_text': '',
+                'attribute_text': False,
                 'attribute_select': False,
                 'attribute_multiselect': [(6, False, [v.id for v in select_value_ids])]
             })
