@@ -94,7 +94,7 @@ class MagentoCustomAttribute(models.Model):
         @param mattribute: Object Magento product attribute 
         @param dict attribute : 2 entry dictionnary with attribute code and value
         """
-        self.ensure_one()
+        
         att_id = mattribute
         value = attribute['value']
         custom_vals = {
