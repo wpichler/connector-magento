@@ -104,6 +104,16 @@ class MagentoCustomAttribute(models.Model):
             custom_vals = {
                     odoo_field_name.name: value,
             }
+            
+            if res.magento_attribute_type in ['price', 'weight'] or \
+                (res.magento_attribute_type == 'text' and    
+                 odoo_field_name.ttype in ['float', 'monetary']
+                 ):
+                value = res.attribute_text.replace(',', '.')
+                custom_vals.update({
+                    odoo_field_name.name: float(value),
+                    })
+            
             if res.magento_attribute_type == 'boolean':
                 custom_vals.update({
                     odoo_field_name.name: int(res.attribute_text),
@@ -136,6 +146,8 @@ class MagentoCustomAttribute(models.Model):
             'attribute_multiselect': False,
         }
 
+        if att_id.frontend_input in ['price', 'weight']:
+            custom_vals.update({'attribute_text': float(value)})
         if att_id.frontend_input == 'boolean':
             custom_vals.update({'attribute_text': str(int(value))})
         if att_id.frontend_input == 'select':

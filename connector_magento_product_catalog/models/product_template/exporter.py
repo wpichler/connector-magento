@@ -136,6 +136,7 @@ class ProductTemplateExportMapper(Component):
         storeview_id = self.work.storeview_id or False
         name = record.name
         if storeview_id:
+            #Needs to be refactored because dependss on custom attributes module
             value_ids = record.\
             magento_template_attribute_value_ids.filtered(
                 lambda att: 

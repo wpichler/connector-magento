@@ -371,5 +371,3 @@ class ProductTemplateImportMapper(Component):
         _logger.info("Get Attribute set for %s returned %s", record['attribute_set_id'], attribute_set)
         return {'attribute_set_id': attribute_set.id}
 
-
-
