@@ -64,3 +64,6 @@
 "access_magento_stock_warehouse_user","magento_stock_warehouse user","model_magento_stock_warehouse","base.group_user",1,0,0,0
 "access_magento_account_tax_user","access_magento_account_tax user","model_magento_account_tax","base.group_user",1,0,0,0
 "access_magento_product_position_user","access_magento_product_position user","model_magento_product_position","base.group_user",1,0,0,0
+"access_magento_account_payment_user","access_magento_account_payment user","model_magento_account_payment","base.group_user",1,0,0,0
+"access_magento_bundle_option","access_magento_bundle_option","model_magento_bundle_option","base.group_user",1,0,0,0
+"access_magento_custom_attribute_values","access_magento_custom_attribute_values","model_magento_custom_attribute_values","base.group_user",1,0,0,0
