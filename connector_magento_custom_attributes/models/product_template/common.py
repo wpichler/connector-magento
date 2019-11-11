@@ -160,8 +160,11 @@ class ProductTemplate(models.Model):
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        res = super(ProductTemplate, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
-                                                           submenu=submenu)
+        res = super(ProductTemplate, self).fields_view_get(
+            view_id=view_id, 
+            view_type=view_type, 
+            toolbar=toolbar,
+            submenu=submenu)
 
         if res['model'] in ['product.template', 'product.product'] and \
                 res['type'] == 'form':

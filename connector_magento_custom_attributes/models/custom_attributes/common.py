@@ -82,7 +82,6 @@ class MagentoCustomAttribute(models.Model):
     
     @api.multi
     def write(self, vals):
-        org_vals = vals.copy()
         res = super(MagentoCustomAttribute, self).write(vals)
         for cv in self:
             cv.check_attribute_id()
@@ -104,8 +103,8 @@ class MagentoCustomAttribute(models.Model):
             'attribute_multiselect': False,
         }
         
-#         if att_id.frontend_input in ['price', 'weight']:
-#             custom_vals.update({'attribute_text': float(value)})
+        if att_id.frontend_input in ['price', 'weight']:
+            custom_vals.update({'attribute_text': float(value)})
         if att_id.frontend_input == 'boolean':
             custom_vals.update({'attribute_text': str(int(value))})
         if att_id.frontend_input == 'select':
@@ -137,6 +136,11 @@ class MagentoCustomAttribute(models.Model):
 
     @api.constrains('attribute_id')
     def check_attribute_id(self):
+        '''
+        Purpose is to set Odoo values if any
+        mapping is set between Odoo and Magento
+        through the odoo_field_name in magento.product.attribute
+        '''
         self.ensure_one()
         res = self
         if 'no_update' in self._context and \
@@ -147,6 +151,15 @@ class MagentoCustomAttribute(models.Model):
             custom_vals = {
                     odoo_field_name.name: res.attribute_text,
             }
+            
+            if res.magento_attribute_type in ['price', 'weight'] or \
+                (res.magento_attribute_type == 'text' and    
+                 odoo_field_name.ttype in ['float', 'monetary']
+                 ):
+                value = res.attribute_text.replace(',', '.')
+                custom_vals.update({
+                    odoo_field_name.name: float(value),
+                    })
             if res.magento_attribute_type == 'boolean':
                 custom_vals.update({
                     odoo_field_name.name: int(res.attribute_text),
@@ -163,7 +176,9 @@ class MagentoCustomAttribute(models.Model):
                         ],
                     })
             
-            res.product_id.with_context(no_update=True).write(custom_vals)
+            res.product_id.with_context(
+                no_update=True
+                ).write(custom_vals)
         
     _sql_constraints = [
         ('custom_attr_unique_product_uiq', 'unique(attribute_id, product_id, backend_id)', 'This attribute already have a value for this product !')
