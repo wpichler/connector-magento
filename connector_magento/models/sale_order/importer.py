@@ -177,13 +177,21 @@ class SaleOrderImportMapper(Component):
 
     def _add_gift_certificate_line(self, map_record, values):
         record = map_record.source
+        if 'parent_item' in record:
+            # Discount values are in the parent record if present
+            record = record['parent_item']
         if 'discount_amount' not in record:
             return values
         # if gift_cert_amount is zero
         if not record.get('discount_amount'):
             return values
         # If discount_percent is set - then we did already used this in the line mapping
-        if record.get('discount_percent', 0) > 0:
+        _logger.info("Discount percent is: %s", record.get('discount_percent', 0))
+        if float(record.get('discount_percent', 0)) > 0:
+            _logger.info("Do not add extra discount line - it is a discount percent line")
+            return values
+        if float(record.get('discount_tax_compensation_amount', 0)) > 0:
+            _logger.info("Do not add extra discount line - it is a tax relevant discount amount line")
             return values
         amount = float(record['discount_amount'])
         name = 'Gift'
@@ -673,12 +681,14 @@ class SaleOrderLineImportMapper(Component):
             # Use parent item here if it is set
             record = record.get('parent_item')
         discount_value = float(record.get('discount_amount') or 0)
+        discount_tax_compensation_amount = float(record.get('discount_tax_compensation_amount') or 0)
         if self.options.tax_include:
             row_total = float(record.get('row_total_incl_tax') or 0)
         else:
             row_total = float(record.get('row_total') or 0)
         discount = 0
-        if discount_value > 0 and row_total > 0:
+        if discount_value > 0 and row_total > 0 and discount_tax_compensation_amount > 0:
+            # We do use the discount value if it is tax relevant
             discount = 100 * discount_value / row_total
         result = {'discount': discount}
         return result
