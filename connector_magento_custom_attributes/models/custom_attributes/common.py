@@ -181,6 +181,7 @@ class MagentoCustomAttribute(models.Model):
                 ).write(custom_vals)
         
     _sql_constraints = [
-        ('custom_attr_unique_product_uiq', 'unique(attribute_id, product_id, backend_id)', 'This attribute already have a value for this product !')
+        ('custom_attr_unique_product_uiq', 
+         'unique(attribute_id, magento_product_id, backend_id)', 'This attribute already have a value for this product !')
     ]
 
