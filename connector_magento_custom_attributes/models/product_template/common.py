@@ -75,10 +75,10 @@ class MagentoProductTemplate(models.Model):
             for cst in org_vals['custom_attributes']:
                 cst_value_id = mg_prod_id.magento_template_attribute_value_ids.filtered(
                     lambda v: v.attribute_id.attribute_code == cst['attribute_code'])
+                _logger.debug(
+                        'Prepare check for Magento Value %s  for attribute_code %s' % 
+                        ( cst_value_id,  cst['attribute_code']))
                 if cst_value_id.odoo_field_name.id:
-                    _logger.debug(
-                        'Prepare check for Magento Value field name mapping %s' % 
-                        cst_value.odoo_field_name)
                     mg_prod_id.check_field_mapping(
                         cst_value_id.odoo_field_name.name,
                         cst['value']
