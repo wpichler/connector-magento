@@ -67,7 +67,7 @@ class MagentoProductProduct(models.Model):
                 custom_vals.update({
                     'attribute_text': False,
                     'attribute_multiselect': False,
-                    'attribute_select': value.magento_bind_ids[0].id or False
+                    'attribute_select': value.magento_bind_ids.id or False
                 })
             if att_id.frontend_input == 'multiselect':
                 custom_vals.update({
