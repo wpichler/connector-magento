@@ -179,7 +179,7 @@ class MagentoCustomAttribute(models.Model):
     
     _sql_constraints = [
         ('custom_attr_unique_product_template_uniq', 
-         'unique(attribute_id, product_template_id, backend_id)', 
+         'unique(attribute_id, magento_product_template_id, backend_id)', 
          'This attribute already have a value for this product template!')
     ]
 
