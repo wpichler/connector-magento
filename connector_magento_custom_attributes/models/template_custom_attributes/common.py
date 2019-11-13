@@ -86,9 +86,13 @@ class MagentoCustomAttribute(models.Model):
             cv.check_attribute_id()
         return res
 
-    @api.one
+
     @api.constrains('attribute_id')
     def check_attribute_id(self):
+        '''
+        Purpose here is to set the value on the template
+        if a custom attribute from magento is bound
+        '''
         self.ensure_one()
         res = self
         if self._context.get('no_update', False) or \
