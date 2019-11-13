@@ -134,10 +134,9 @@ class MagentoCustomAttribute(models.Model):
         return custom_vals
 
 
-    @api.constrains('attribute_id')
     def check_attribute_id(self):
         '''
-        Purpose is to set Odoo values if any
+        Purpose is to set **Odoo values** if any
         mapping is set between Odoo and Magento
         through the odoo_field_name in magento.product.attribute
         '''

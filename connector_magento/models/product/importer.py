@@ -523,8 +523,8 @@ class ProductImporter(Component):
             # Name is set on product template on configurables
             if 'name' in data and self._binding_template_id:
                 del data['name']
-        super(ProductImporter, self)._update(binding, data)
-        return
+        
+        return super(ProductImporter, self)._update(binding, data)
 
     def _create(self, data):
         if self._binding_template_id:
