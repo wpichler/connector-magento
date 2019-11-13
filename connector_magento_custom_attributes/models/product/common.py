@@ -24,7 +24,7 @@ class MagentoProductProduct(models.Model):
 
     magento_attribute_line_ids = fields.One2many(comodel_name='magento.custom.attribute.values',
                                                  inverse_name='magento_product_id', 
-                                                 string='Magento Simple Custom Attributes Values',
+                                                 string='Magento Custom Attributes Values',
                                         )
     custom_values_count = fields.Integer('Custom Values Count', compute='_compute_custom_values_count')
 
@@ -96,7 +96,7 @@ class MagentoProductProduct(models.Model):
     @api.model
     def create(self, vals):
         mg_prod_id = super(MagentoProductProduct, self).create(vals)
-        mg_prod_id.recheck_field_mapping()
+#         mg_prod_id.recheck_field_mapping()
         return mg_prod_id
 
 

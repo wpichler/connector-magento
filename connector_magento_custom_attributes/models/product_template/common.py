@@ -92,7 +92,7 @@ class MagentoProductTemplate(models.Model):
                         cst_value.odoo_field_name.name, mg_prod_id)
                 else:
                     _logger.debug(
-                        'Prepare check for Magento Value field name mapping %s' % 
+                        'Prepare check for Odoo field [%s] value' % 
                         cst_value.odoo_field_name.name)
                     
                     mg_prod_id.check_field_mapping(
@@ -100,6 +100,7 @@ class MagentoProductTemplate(models.Model):
                         mg_prod_id[cst_value.odoo_field_name.name])
         
         if 'custom_attributes' in org_vals:
+            #TODO : Check weither of not thispart still usefull
             '''
             If the key is present,
             should come form connector
