@@ -111,12 +111,20 @@ class MagentoCustomAttribute(models.Model):
             value_ids = att_id.magento_attribute_value_ids
             select_value = value_ids.filtered(
                 lambda v: v.external_id.split('_')[1] == value)
-
+            
+            if not select_value:
+                _logger.debug('No value found for attribute %s with value %s'
+                          % (att_id, value))
+                val = False
+            else :
+                val = select_value.magento_bind_ids[0].id 
+                
             custom_vals.update({
-                'attribute_text': '',
+                'attribute_text': False,
                 'attribute_multiselect': False,
-                'attribute_select': select_value.magento_bind_ids[0].id or False
+                'attribute_select': val
             })
+
         if att_id.frontend_input == 'multiselect':
             if not isinstance(value, list ):
                 value = [value]
@@ -125,12 +133,19 @@ class MagentoCustomAttribute(models.Model):
                 lambda v:
                     v.external_id.split('_')[1] in value
             )
+            if not select_value_ids:
+                vals = False
+                _logger.debug('No value found for attribute %s with value %s'
+                          % (att_id, value))
+            else: 
+                vals = [(6, False, [v.id for v in select_value_ids])] 
+                
             custom_vals.update({
                 'attribute_text': False,
                 'attribute_select': False,
-                'attribute_multiselect': [(6, False, [v.id for v in select_value_ids])]
+                'attribute_multiselect': vals
             })
-   
+            
         return custom_vals
 
 
