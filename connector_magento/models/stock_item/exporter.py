@@ -25,7 +25,6 @@ class MagentoStockItemExportMapper(Component):
     _apply_on = ['magento.stock.item']
 
     direct = [
-        ('min_sale_qty', 'min_sale_qty'),
         ('is_qty_decimal', 'is_qty_decimal'),
         ('use_config_min_qty', 'use_config_min_qty'),
         ('manage_stock', 'manage_stock'),
@@ -34,8 +33,12 @@ class MagentoStockItemExportMapper(Component):
     ]
 
     @mapping
-    def min_qty(self, record):
-        return {'min_qty': record.min_qty if record.min_qty else 0.0}
+    def qties(self, record):
+        return {
+            'min_sale_qty': record.min_sale_qty if record.min_sale_qty else 0.0,
+            'min_qty': record.min_qty if record.min_qty else 0.0,
+            
+            }
 
     @mapping
     def backorders(self, record):
