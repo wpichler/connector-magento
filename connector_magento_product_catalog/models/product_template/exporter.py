@@ -83,7 +83,11 @@ class ProductTemplateDefinitionExporter(Component):
                     'magento_configurable_id': record.id,
                     'visibility': '1',
                 })
+                # Do export variant immediate
                 variant_exporter.run(m_prod)
+            else:
+                # Plan an update for the variant
+                variant_exporter.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run(m_prod)
 
     def _create_attribute_lines(self):
         record = self.binding
@@ -191,7 +195,7 @@ class ProductTemplateExportMapper(Component):
         links = []
         for p in record.product_variant_ids:
             mp = p.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
-            if not mp.external_id:
+            if not mp.magento_id:
                 continue
             links.append(mp.magento_id)
         return {'configurable_product_links': links}

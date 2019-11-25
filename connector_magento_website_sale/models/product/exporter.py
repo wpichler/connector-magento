@@ -63,10 +63,35 @@ class ProductProductExporter(Component):
                 exporter.run(magento_image)
         return
 
+    def _export_product_links(self):
+        # TODO: Refactor this to use a real mapping and exporter class
+        record = self.binding
+        a_products = []
+        position = 1
+        for p in record.alternative_product_ids:
+            linked_product_type = 'configurable'
+            binding = p.magento_template_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            if not binding or not binding.external_id:
+                binding = p.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+                linked_product_type = 'simple'
+                if not binding or not binding.external_id:
+                    _logger.info("No binding / No external id on binding for linked product %s", p.display_name)
+                    continue
+            a_products.append({
+                "sku": record.external_id,
+                "link_type": "related",
+                "linked_product_sku": binding.external_id,
+                "linked_product_type": linked_product_type,
+                "position": position,
+            })
+            position += 1
+        self.backend_adapter.update_product_links(record.external_id, a_products)
+
     def _after_export(self):
         """ Export the dependencies for the record"""
         super(ProductProductExporter, self)._after_export()
         self._export_images()
+        self._export_product_links()
         return
 
 

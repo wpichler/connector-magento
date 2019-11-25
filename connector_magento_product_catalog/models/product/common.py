@@ -49,6 +49,14 @@ class MagentoProductProduct(models.Model):
             exporter = work.component(usage='record.exporter')
             return exporter.run(self)
 
+    @api.model
+    def create(self, vals):
+        if 'website_ids' not in vals:
+            # If not websites specified - then activate all websites
+            websites = self.env['magento.website'].search([('backend_id', '=', vals['backend_id'])])
+            vals['website_ids'] = [(6, 0, websites.ids)]
+        return super(MagentoProductProduct, self).create(vals)
+
 
 class ProductProductAdapter(Component):
     _inherit = 'magento.product.product.adapter'
@@ -57,6 +65,19 @@ class ProductProductAdapter(Component):
     def _get_id_from_create(self, result, data=None):
         # Products do use the sku as external_id - but we also need the id - so do return the complete data structure
         return result
+
+    def update_product_links(self, sku, items):
+        def escape(term):
+            if isinstance(term, basestring):
+                return urllib.quote(term.encode('utf-8'), safe='')
+            return term
+
+        if self.work.magento_api._location.version == '2.0':
+            res = self._call('products/%s/links' % escape(sku), {
+                "items": items
+            }, http_method="post")
+            _logger.info("Got result for items: %s.", res)
+            return res
 
     def remove_special_price(self, sku):
         def escape(term):

@@ -84,6 +84,7 @@ class ProductProductExporter(Component):
     def _update(self, data):
         """ Create the Magento record """
         # special check on data before export
+        _logger.info("Do update with: %s", data)
         return super(ProductProductExporter, self)._update(data)
 
     def _should_import(self):
@@ -247,7 +248,7 @@ class ProductProductExporter(Component):
 
     def _export_stock(self):
         for stock_item in self.binding.magento_stock_item_ids:
-            stock_item.sync_to_magento()
+            stock_item.sync_to_magento(force=True)
 
     def _after_export(self):
         self._export_base_image()

@@ -45,6 +45,14 @@ class MagentoProductTemplate(models.Model):
                 exporter = work.component(usage='record.exporter')
                 return exporter.run(self)
 
+    @api.model
+    def create(self, vals):
+        if 'website_ids' not in vals:
+            # If not websites specified - then activate all websites
+            websites = self.env['magento.website'].search([('backend_id', '=', vals['backend_id'])])
+            vals['website_ids'] = [(6, 0, websites.ids)]
+        return super(MagentoProductTemplate, self).create(vals)
+
 
 class ProductTemplateAdapter(Component):
     _inherit = 'magento.product.template.adapter'
@@ -64,7 +72,7 @@ class ProductTemplateAdapter(Component):
             res = self._call('products/%s/links' % escape(sku), {
                 "items": items
             }, http_method="post")
-            _logger.info("Got result for items: %s.", res)
+            _logger.info("Got result %s for sku %s items: %s.", res, sku, items)
             return res
 
     def remove_special_price(self, sku):
