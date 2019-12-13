@@ -23,6 +23,12 @@ class MagentoStockMoveListener(Component):
     _inherit = 'base.connector.listener'
     _apply_on = ['stock.move']
 
+
+    def _get_inventory_fields(self):
+        # fields which should trigger an export of the inventory
+        return ('quantity',)
+
+
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_picking_out_done(self, record, picking_method):
         for binding in record.product_id.magento_bind_ids:
@@ -32,6 +38,8 @@ class MagentoStockMoveListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
+#         if not 'state' in fields and :
+#             return
         for binding in record.product_id.magento_bind_ids:
             for stock_item in binding.magento_stock_item_ids:
                 if stock_item.should_export:
