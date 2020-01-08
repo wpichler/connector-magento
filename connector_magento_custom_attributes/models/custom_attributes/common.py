@@ -101,7 +101,11 @@ class MagentoCustomAttribute(models.Model):
             'attribute_select': False,
             'attribute_multiselect': False,
         }
-        
+        if att_id.frontend_input in ['text']:
+            if isinstance(value, list ):
+                value = ' '.join(value)
+                value = u'[%s]' % value
+            custom_vals.update({'attribute_text': value})
         if att_id.frontend_input in ['price', 'weight']:
             custom_vals.update({'attribute_text': float(value)})
         if att_id.frontend_input == 'boolean':
