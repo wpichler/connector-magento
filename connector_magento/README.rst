@@ -39,6 +39,8 @@ Synchronizations:
 * Create the invoices on Magento and get their number back
 * Resolve and import the dependencies when they are not yet imported
   (ie. customer, products for sale order)
+* Export of products and categories of products
+* Handle product bundles
 
 Automatizations:
 
@@ -57,9 +59,7 @@ Technical points:
   with other e-commerce addons
 * Use the jobs system of the `connector`_ framework
 * Create `connector`_ checkpoints when new records to verify are imported
-* Support Magento 1.7+ (not 2.x), the support of earlier versions should be easy to
-  add, the `connector`_ framework being designed to handle multiple
-  versions with ease.
+* Support Magento 2.x, support for older versions is present - but not tested
 * Licensed under AGPL version 3
 * Designed to be usable with multiple Magento or any other e-commerce backends
   in the same time.
@@ -73,8 +73,10 @@ Installation
 ============
 
 To install this module, you need to:
+You will need this pip (the call_with_http_method branch)
+https://github.com/StefanRijnhart/python-magento/tree/call_with_http_method
 
-Read the full installation guide:
+Read the full installation guide (maybe outdated):
 http://odoo-magento-connector.com/guides/installation_guide.html
 
 Configuration and usage
