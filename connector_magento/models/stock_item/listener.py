@@ -24,23 +24,31 @@ class MagentoStockMoveListener(Component):
     _apply_on = ['stock.move']
 
 
-    def _get_inventory_fields(self):
-        # fields which should trigger an export of the inventory
-        return ('quantity',)
+    def _need_to_update(self, fields, record, binding):
+        if 'state' in fields:
+            wh_location_id = binding.backend_id.warehouse_id.lot_stock_id
+            #TODO: Imporve the comparison with clid of syntax
+            if record.location_dest_id.get_warehouse() == wh_location_id.get_warehouse() or \
+                   record.location_id.get_warehouse() == wh_location_id.get_warehouse() :
+                return True
+        
+        return False 
 
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_picking_out_done(self, record, picking_method):
         for binding in record.product_id.magento_bind_ids:
+            if not self._need_to_update(fields, record, binding):
+                return
             for stock_item in binding.magento_stock_item_ids:
                 if stock_item.should_export:
                     stock_item.with_delay(identity_key=identity_exact, priority=5).export_record(stock_item.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-#         if not 'state' in fields and :
-#             return
         for binding in record.product_id.magento_bind_ids:
+            if not self._need_to_update(fields, record, binding):
+                return 
             for stock_item in binding.magento_stock_item_ids:
                 if stock_item.should_export:
                     stock_item.with_delay(identity_key=identity_exact, priority=5).export_record(stock_item.backend_id)
