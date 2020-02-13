@@ -249,10 +249,11 @@ class ProductTemplateImportMapper(Component):
     _name = 'magento.product.template.import.mapper'
     _inherit = 'magento.product.product.import.mapper'
     _apply_on = ['magento.product.template']
-
-    direct = [('sku', 'magento_default_code')]
     children = []
 
+    @mapping
+    def magento_default_code(self, record):
+        return {'magento_default_code': record['sku']}
 
     @mapping
     def custom_values(self, record):
