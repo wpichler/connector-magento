@@ -186,7 +186,6 @@ class ProductImportMapper(Component):
 
     direct = [('price', 'magento_price'),
               ('description', 'description'),
-              ('weight', 'weight'),
               ('short_description', 'description_sale'),
               ('url_key', 'magento_url_key'),
               ('sku', 'external_id'),
@@ -195,6 +194,18 @@ class ProductImportMapper(Component):
               (normalize_datetime('created_at'), 'created_at'),
               (normalize_datetime('updated_at'), 'updated_at'),
               ]
+
+    @mapping
+    def weight(self, record):
+        if 'weight' not in record:
+            return {}
+        weight = float(record['weight'])
+        uom_id = self.backend_record.weight_uom_id
+        if uom_id.uom_type == 'bigger':
+            weight = uom_id.factor * weight
+        if uom_id.uom_type == 'smaller':
+            weight = uom_id.factor_inv * weight
+        return {'weight': weight}
 
     @only_create
     @mapping
@@ -512,8 +523,8 @@ class ProductImporter(Component):
             # Name is set on product template on configurables
             if 'name' in data and self._binding_template_id:
                 del data['name']
-        super(ProductImporter, self)._update(binding, data)
-        return
+        
+        return super(ProductImporter, self)._update(binding, data)
 
     def _create(self, data):
         if self._binding_template_id:

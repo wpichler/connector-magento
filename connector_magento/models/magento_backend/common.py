@@ -147,6 +147,12 @@ class MagentoBackend(models.Model):
         help='Warehouse used to compute the '
              'stock quantities.',
     )
+    weight_uom_id = fields.Many2one(
+        comodel_name='product.uom',
+        string='Unit for weight used in Magento',
+        required=True,
+        help='Helps to convert weight ',
+    )
     company_id = fields.Many2one(
         comodel_name='res.company',
         related='warehouse_id.company_id',

@@ -22,7 +22,7 @@ class ProductTemplateImportMapper(Component):
         has to be migrated
         """
         attribute_binder = self.binder_for('magento.product.attribute')
-        magento_attribute_line_ids = []
+        magento_template_attribute_value_ids = []
         for attribute in record['custom_attributes']:
             mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False, external_field='attribute_code')
             if not mattribute:
@@ -32,21 +32,16 @@ class ProductTemplateImportMapper(Component):
                 # We do ignore attributes which do create a variant
                 continue
             # Check for update or create
-            mcav = self.env['magento.custom.attribute.values']
+            mcav = self.env['magento.custom.template.attribute.values']
             if 'binding' in self.options:
-                mcav = self.options.binding.magento_template_attribute_line_ids.filtered(lambda line: line.attribute_id==mattribute and not line.store_view_id)
+                mcav = self.options.binding.magento_template_attribute_value_ids.filtered(lambda line: line.attribute_id==mattribute and not line.store_view_id)
+            
+            vals = mcav._get_field_values_from_magento_type(mattribute, attribute)
             if not mcav:
-                vals = {
-                    'attribute_id': mattribute.id,
-                    'store_view_id': False,
-                    'attribute_text': attribute['value']
-                }
-                magento_attribute_line_ids.append((0, False, vals))
+                magento_template_attribute_value_ids.append((0, False, vals))
             else:
-                vals = {
-                    'attribute_text': attribute['value']
-                }
-                magento_attribute_line_ids.append((1, mcav.id, vals))
+                magento_template_attribute_value_ids.append((1, mcav.id, vals))
+
         return {
-            'magento_attribute_line_ids': magento_attribute_line_ids
+            'magento_template_attribute_value_ids': magento_template_attribute_value_ids
         }

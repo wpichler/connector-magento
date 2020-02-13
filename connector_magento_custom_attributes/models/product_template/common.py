@@ -50,32 +50,67 @@ class MagentoProductTemplate(models.Model):
         action['context'] = action_context
         return action
 
+
+    @api.multi
+    def recheck_field_mapping(self, values=None):
+        for mproduct in self:
+            attribute_set_id = mproduct.attribute_set_id or mproduct.backend_id.default_attribute_set_id
+            attributes = attribute_set_id.attribute_ids.filtered(lambda x: x.odoo_field_name)
+            for att in attributes:
+                mproduct.check_field_mapping(att.odoo_field_name.name, vals=values)
+
+
+
     @api.model
     def create(self, vals):
+        '''
+        Double purpose on this inheritance
+        First if coming from connector, the method
+        complete the attributes values and tr to find the missing values from odoo mapping
+        
+        If coming from a direct input in odoo, will also complete the
+        structure of the template in order to prepare the next export
+        '''
         mg_prod_id = super(MagentoProductTemplate, self).create(vals)
         org_vals = vals.copy()
-        attributes = mg_prod_id.attribute_set_id.attribute_ids
+        att_from_attset = mg_prod_id.attribute_set_id.attribute_ids
+        attr_from_prod = mg_prod_id.magento_template_attribute_value_ids.mapped('attribute_id')
+        attributes = att_from_attset - attr_from_prod
         cstm_att_mdl = self.env['magento.custom.template.attribute.values']
         for att in attributes:
+            #Add missing attribute values reagrding the attribute set 
             vals = {
-                #                 'backend_id': self.backend_id.id,
                 'magento_product_template_id': mg_prod_id.id,
                 'attribute_id': att.id,
-                #                 'magento_attribute_type': att.frontend_input,
-                #                 'product_template_id': self.odoo_id.id,
-                #                 'odoo_field_name': att.odoo_field_name.id or False
             }
             cst_value = cstm_att_mdl.with_context(no_update=True).create(vals)
             if cst_value.odoo_field_name.id:
-                mg_prod_id.check_field_mapping(
-                    cst_value.odoo_field_name.name,
-                    mg_prod_id[cst_value.odoo_field_name.name])
-
+                #If a mapping exists, try to find out the value from odoo
+                if cst_value.odoo_field_name.name not in mg_prod_id:
+                    _logger.debug(
+                        'Field %s not present in the model %s \nCheck your mapping!' % 
+                        cst_value.odoo_field_name.name, mg_prod_id)
+                else:
+                    _logger.debug(
+                        'Prepare check for Odoo field [%s] value' % 
+                        cst_value.odoo_field_name.name)
+                    
+                    mg_prod_id.check_field_mapping(
+                        cst_value.odoo_field_name.name,
+                        mg_prod_id[cst_value.odoo_field_name.name])
+        
         if 'custom_attributes' in org_vals:
-            magento_attr_mdl = self.env['magento.product.attribute']
+            #TODO : Check weither of not thispart still usefull
+            '''
+            If the key is present,
+            should come form connector
+            '''
             for cst in org_vals['custom_attributes']:
                 cst_value_id = mg_prod_id.magento_template_attribute_value_ids.filtered(
                     lambda v: v.attribute_id.attribute_code == cst['attribute_code'])
+                _logger.debug(
+                        'Prepare mapping for Custom dict  %s and values already set %s' % 
+                        ( cst, cst_value_id ))
                 if cst_value_id.odoo_field_name.id:
                     mg_prod_id.check_field_mapping(
                         cst_value_id.odoo_field_name.name,
@@ -84,9 +119,6 @@ class MagentoProductTemplate(models.Model):
                 elif cst_value_id.id:
                     cst_value_id.write({
                         'attribute_text': cst['value']})
-
-        #         if mg_prod_id.odoo_id.product_variant_count > 1 :
-        #             self.env['magento.template.attribute.line']._update_attribute_lines(mg_prod_id)
 
         return mg_prod_id
 
@@ -99,7 +131,7 @@ class MagentoProductTemplate(models.Model):
         :param field : field representation as ...
         :param vals : dictionnary of ...
 
-        :return : dictionnary
+        :return : nothing
         """
         self.ensure_one()
         #         att_id = 0
@@ -161,8 +193,11 @@ class ProductTemplate(models.Model):
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        res = super(ProductTemplate, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
-                                                           submenu=submenu)
+        res = super(ProductTemplate, self).fields_view_get(
+            view_id=view_id, 
+            view_type=view_type, 
+            toolbar=toolbar,
+            submenu=submenu)
 
         if res['model'] in ['product.template', 'product.product'] and \
                 res['type'] == 'form':

@@ -250,6 +250,7 @@ class ProductTemplateImportMapper(Component):
     _inherit = 'magento.product.product.import.mapper'
     _apply_on = ['magento.product.template']
 
+    direct = [('sku', 'magento_default_code')]
     children = []
 
 
@@ -324,7 +325,6 @@ class ProductTemplateImportMapper(Component):
             result['categ_id'] = main_categ_id
         return result
 
-    @only_create
     @mapping
     def auto_create_variants(self, records):
         # By default we disable auto create variants when product is coming from a webshop
@@ -348,17 +348,17 @@ class ProductTemplateImportMapper(Component):
     @mapping
     def product_name(self, record):
         return {
-            'name': record.get('name', ''),
+            'name': record.get('name', 'TBD defined %s' % record['id']),
         }
 
     @only_create
     @mapping
     def odoo_id(self, record):
         """ Will bind the product to an existing one with the same code """
-        product = self.env['product.template'].search(
+        product_id = self.env['product.product'].search(
             [('default_code', '=', record['sku'])], limit=1)
-        if product:
-            return {'odoo_id': product.product_tmpl_id.id}
+        if product_id:
+            return {'odoo_id': product_id.product_tmpl_id.id}
 
     @mapping
     def odoo_type(self, record):
@@ -370,6 +370,4 @@ class ProductTemplateImportMapper(Component):
         attribute_set = binder.to_internal(record['attribute_set_id'])
         _logger.info("Get Attribute set for %s returned %s", record['attribute_set_id'], attribute_set)
         return {'attribute_set_id': attribute_set.id}
-
-
 

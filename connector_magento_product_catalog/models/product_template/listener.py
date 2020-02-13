@@ -14,13 +14,19 @@ class MagentoProductTemplateBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_create(self, record, fields=None):
+        if record.backend_id.product_synchro_strategy == 'magento_first': 
+                return
         record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
+        if record.backend_id.product_synchro_strategy == 'magento_first': 
+                return        
         record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
     def on_record_unlink(self, record):
+        if record.backend_id.product_synchro_strategy == 'magento_first': 
+                return    
         with record.backend_id.work_on(record._name) as work:
             external_id = work.component(usage='binder').to_external(record)
             if external_id:
@@ -34,7 +40,7 @@ class MagentoProductTemplateExportListener(Component):
     _apply_on = ['product.template']
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
-    def on_record_write(self, record, fields=None):
+    def on_record_write(self, record, fields=None):     
         if 'image_medium' in fields:
             # We do ignore image field
             fields.remove('image_medium')
@@ -49,4 +55,6 @@ class MagentoProductTemplateExportListener(Component):
         else:
             binding_ids = record.magento_template_bind_ids
         for binding in binding_ids:
+            if binding.backend_id.product_synchro_strategy == 'magento_first': 
+                continue       
             binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
