@@ -87,7 +87,7 @@ class ProductTemplateDefinitionExporter(Component):
                 variant_exporter.run(m_prod)
             else:
                 # Plan an update for the variant
-                variant_exporter.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run(m_prod)
+                m_prod.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run_sync_to_magento()
 
     def _create_attribute_lines(self):
         record = self.binding
