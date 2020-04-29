@@ -85,3 +85,7 @@ class MagentoTrackingExporter(Component):
         #self._check_allowed_carrier(binding, sale_binding_id.external_id)
         tracking_args = self._get_tracking_args(binding)
         self.backend_adapter.add_tracking_number(external_id, *tracking_args)
+        self.backend_adapter.notify_shipping(
+            binding.magento_order_id.external_id,
+            binding.get_notify_shipping_items(),
+        )

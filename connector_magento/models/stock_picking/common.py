@@ -42,6 +42,17 @@ class MagentoStockPicking(models.Model):
             exporter = work.component(usage='tracking.exporter')
             return exporter.run(self)
 
+    def get_notify_shipping_items(self):
+        self.ensure_one()
+        data = []
+        for move in self.move_lines:
+            if move.sale_line_id and move.sale_line_id.magento_bind_ids:
+                data.append({
+                    'order_item_id': move.quantity_done,
+                    'qty': move.sale_line_id.magento_bind_ids[0].external_id,
+                })
+        return data
+
     @job(default_channel='root.magento')
     @related_action(action='related_action_unwrap_binding')
     @api.multi
@@ -121,6 +132,21 @@ class StockPickingAdapter(Component):
         return self._call('%s.addTrack' % self._magento_model,
                           [external_id, carrier_code,
                            tracking_title, tracking_number])
+
+    def notify_shipping(self, order_id, items):
+        """ Add new tracking number.
+
+        :param external_id: shipment increment id
+        :param carrier_code: code of the carrier on Magento
+        :param tracking_title: title displayed on Magento for the tracking
+        :param tracking_number: tracking number
+        """
+
+        if self.collection.version == '2.0':
+            return self._call('order/%s/ship' % order_id, {
+                'notify': True,
+                'items': items
+            }, http_method='post')
 
     def get_carriers(self, external_id):
         """ Get the list of carrier codes allowed for the shipping.

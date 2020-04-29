@@ -28,10 +28,13 @@ class MagentoProductMedia(models.Model):
     @api.depends('url')
     def _get_image(self):
         for media in self:
-            f = urllib.request.urlopen(media.url)
-            if f.code == 200:
-                media.image = base64.b64encode(f.read())
-            f.close()
+            try:
+                f = urllib.request.urlopen(media.url)
+                if f.code == 200:
+                    media.image = base64.b64encode(f.read())
+                f.close()
+            except Exception as e:
+                _logger.error("Got Exception %s while trying to fetch image on %s", e, media.url)
 
     magento_product_id = fields.Many2one(comodel_name='magento.product.product',
                                          string='Magento Product',

@@ -110,8 +110,13 @@ class ProductBundleImporter(Component):
         moptions = record['extension_attributes']['bundle_product_options']
         option_importer = self.component(usage='record.importer',
                                          model_name='magento.bundle.option')
+        product_importer = self.component(usage='record.importer',
+                                         model_name='magento.product.product')
         for moption in moptions:
             # Do always import / update
+            _logger.info("Do try to import option %s", moption['product_links'])
+            for pl in moption['product_links']:
+                product_importer.run(pl['sku'])
             option_importer.run(moption, bundle_binding=binding)
 
     def _get_binding(self):
@@ -130,7 +135,7 @@ class ProductBundleImporter(Component):
         image_importer = self.component(usage='bundle.image.importer')
         image_importer.run(self.external_id, binding,
                            data=self.magento_record)
-        #TODO Import Bundles
+        # TODO Import Bundles
         self._import_options(binding)
 
         # Do also import translations
@@ -268,6 +273,7 @@ class ProductBundleOptionImporter(Component):
 
     def run(self, external_id, force=False, bundle_binding=None):
         self.bundle_binding = bundle_binding
+        _logger.info("Do import bundle option now")
         return super(ProductBundleOptionImporter, self).run(external_id, force)
 
 

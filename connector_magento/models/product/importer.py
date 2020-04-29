@@ -233,9 +233,6 @@ class ProductImportMapper(Component):
 
     @mapping
     def price(self, record):
-        if record['visibility'] == 1:
-            # This is a product variant - so the price got set on the template !
-            return {}
         _logger.info("Do use price: %r", record.get('price', 0.0))
         return {
             'lst_price': record.get('price', 0.0),
@@ -243,18 +240,12 @@ class ProductImportMapper(Component):
 
     @mapping
     def cost(self, record):
-        if record['visibility'] == 1:
-            # This is a product variant - so the price got set on the template !
-            return {}
         return {
             'standard_price': record.get('cost', 0.0),
         }
 
     @mapping
     def product_name(self, record):
-        if record['visibility'] == 1:
-            # This is a product variant - so the name got set on the template !
-            return {}
         return {
             'name': record.get('name', ''),
         }
@@ -519,6 +510,11 @@ class ProductImporter(Component):
             # Name is set on product template on configurables
             if 'name' in data:
                 del data['name']
+            if 'standard_price' in data:
+                del data['standard_price']
+            if 'lst_price' in data:
+                del data['lst_price']
+
         binding = super(ProductImporter, self)._create(data)
         self.backend_record.add_checkpoint(binding)
         return binding
