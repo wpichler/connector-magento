@@ -53,6 +53,14 @@ class MagentoStockPicking(models.Model):
                 })
         return data
 
+    def get_notify_shipping_tracks(self):
+        self.ensure_one()
+        return [{
+            "track_number": self.carrier_tracking_ref,
+            "title": "Tracking Code",
+            "carrier_code": self.carrier_id.magento_carrier_code
+        }]
+
     @job(default_channel='root.magento')
     @related_action(action='related_action_unwrap_binding')
     @api.multi
@@ -106,34 +114,7 @@ class StockPickingAdapter(Component):
         return self._call('%s.create' % self._magento_model,
                           [order_id, items, comment, email, include_comment])
 
-    def add_tracking_number(self, external_id, carrier_code,
-                            tracking_title, tracking_number, order_id):
-        """ Add new tracking number.
-
-        :param external_id: shipment increment id
-        :param carrier_code: code of the carrier on Magento
-        :param tracking_title: title displayed on Magento for the tracking
-        :param tracking_number: tracking number
-        """
-
-        if self.collection.version == '2.0':
-            return self._call('shipment/track', {
-                "entity": {
-                    "order_id": order_id,
-                    "parent_id": external_id,
-                    "weight": 0,
-                    "qty": 1,
-                    "description": tracking_title,
-                    "track_number": tracking_number,
-                    "title": tracking_title,
-                    "carrier_code": carrier_code
-                }
-            }, http_method='post')
-        return self._call('%s.addTrack' % self._magento_model,
-                          [external_id, carrier_code,
-                           tracking_title, tracking_number])
-
-    def notify_shipping(self, order_id, items):
+    def notify_shipping(self, order_id, items, tracks):
         """ Add new tracking number.
 
         :param external_id: shipment increment id
@@ -145,7 +126,8 @@ class StockPickingAdapter(Component):
         if self.collection.version == '2.0':
             return self._call('order/%s/ship' % order_id, {
                 'notify': True,
-                'items': items
+                'items': items,
+                'tracks': tracks
             }, http_method='post')
 
     def get_carriers(self, external_id):

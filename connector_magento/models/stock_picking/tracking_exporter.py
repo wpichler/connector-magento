@@ -17,12 +17,6 @@ class MagentoTrackingExporter(Component):
     _apply_on = ['magento.stock.picking']
     _usage = 'tracking.exporter'
 
-    def _get_tracking_args(self, picking):
-        return (picking.carrier_id.magento_carrier_code,
-                picking.carrier_id.magento_tracking_title or '',
-                picking.carrier_tracking_ref,
-                picking.magento_order_id.external_id)
-
     def _validate(self, binding):
         if binding.state != 'done':  # should not happen
             raise ValueError("Wrong value for picking state, "
@@ -81,11 +75,8 @@ class MagentoTrackingExporter(Component):
                                   binding.name)
 
         self._validate(binding)
-        # Not needed with magneto 2 ? TODO: Check this
-        #self._check_allowed_carrier(binding, sale_binding_id.external_id)
-        tracking_args = self._get_tracking_args(binding)
-        self.backend_adapter.add_tracking_number(external_id, *tracking_args)
         self.backend_adapter.notify_shipping(
             binding.magento_order_id.external_id,
             binding.get_notify_shipping_items(),
+            binding.get_notify_shipping_tracks(),
         )
