@@ -349,10 +349,18 @@ class MagentoBackend(models.Model):
                 products = adapter.search_read(filters)
                 tskus = []
                 pskus = []
+                bskus = []
                 for product in products['items']:
                     if product['type_id'] == 'configurable':
                         tskus.append(product['sku'])
                         binding = self.env['magento.product.template'].search([
+                            ('backend_id', '=', backend.id),
+                            ('external_id', '=', product['sku']),
+                            ('active', 'in', [True,False]),
+                        ])
+                    elif product['type_id'] == 'bundle':
+                        bskus.append(product['sku'])
+                        binding = self.env['magento.product.bundle'].search([
                             ('backend_id', '=', backend.id),
                             ('external_id', '=', product['sku']),
                             ('active', 'in', [True,False]),
@@ -366,10 +374,6 @@ class MagentoBackend(models.Model):
                         ])
                     if not binding:
                         _logger.info("Found Magento product without binding: %s with status=%s,type=%s", product['sku'], product['status'], product['type_id'])
-                        if product['type_id'] == 'simple':
-                            # Do delete the magento product
-                            adapter.delete(product['sku'])
-                            continue
                         continue
                     if binding.magento_id != product['id']:
                         _logger.info("Binding ID does not match magento ID !. %s, %s", product, binding)
@@ -390,6 +394,12 @@ class MagentoBackend(models.Model):
                 ])
                 if pbindings:
                     _logger.info("These product bindings do not have a magento product: %s", pbindings)
+                bbindings = self.env['magento.product.bundle'].search([
+                    ('backend_id', '=', backend.id),
+                    ('external_id', 'not in', bskus)
+                ])
+                if bbindings:
+                    _logger.info("These product bundle bindings do not have a magento product: %s", bbindings)
 
     @api.multi
     def import_partners(self):
