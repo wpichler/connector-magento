@@ -61,6 +61,7 @@ class MagentoProductBundle(models.Model):
     magento_price = fields.Float('Backend Preis', default=0.0, digits=dp.get_precision('Product Price'),)
     created_at = fields.Date('Created At (on Magento)')
     updated_at = fields.Date('Updated At (on Magento)')
+    magento_url_key = fields.Char(string="URL Key")
     magento_product_position_ids = fields.One2many(
         comodel_name='magento.product.position',
         compute='_compute_product_categories',
