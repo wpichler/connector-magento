@@ -39,18 +39,6 @@ class ProductBundleBatchImporter(Component):
             self._import_record(external_id)
 
 
-class MagentoProductBundleImageImporter(Component):
-    """ Import images for a record.
-
-    Usually called from importers, in ``_after_import``.
-    For instance from the products importer.
-    """
-    _name = 'magento.product.bundle.image.importer'
-    _inherit = 'magento.product.image.importer'
-    _apply_on = ['magento.product.bundle']
-    _usage = 'bundle.image.importer'
-
-
 class ProductBundleImporter(Component):
     _name = 'magento.product.bundle.importer'
     _inherit = 'magento.importer'
