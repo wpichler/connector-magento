@@ -39,18 +39,6 @@ class ProductTemplateBatchImporter(Component):
             self._import_record(external_id)
 
 
-class MagentoProductTemplateImageImporter(Component):
-    """ Import images for a record.
-
-    Usually called from importers, in ``_after_import``.
-    For instance from the products importer.
-    """
-    _name = 'magento.product.template.image.importer'
-    _inherit = 'magento.product.image.importer'
-    _apply_on = ['magento.product.template']
-    _usage = 'template.image.importer'
-
-
 class ProductTemplateImporter(Component):
     _name = 'magento.product.template.importer'
     _inherit = 'magento.importer'
