@@ -404,12 +404,6 @@ class ProductImporter(Component):
         for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image'), key=sort_by_position):
             binding.with_context(connector_no_export=True).image = media_binding.image
             break
-        '''
-        image_importer = self.component(usage='product.image.importer')
-        image_importer.run(self.external_id, binding,
-                           data=self.magento_record)
-
-        '''
         if self.magento_record['type_id'] == 'bundle':
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)
