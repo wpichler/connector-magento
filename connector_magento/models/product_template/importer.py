@@ -155,6 +155,9 @@ class ProductTemplateImporter(Component):
             mapper='magento.product.template.import.mapper'
         )
         # Do import stock item
+        self._import_stock(binding)
+
+    def _import_stock(self, binding):
         stock_importer = self.component(usage='record.importer',
                                         model_name='magento.stock.item')
         stock_importer.run(self.magento_record['extension_attributes']['stock_item'])
