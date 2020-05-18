@@ -31,8 +31,13 @@ class ProductBatchImporter(Component):
         """ Run the synchronization """
         from_date = filters.pop('from_date', None)
         to_date = filters.pop('to_date', None)
-        # with visibility=4 we only get products which are standalone products - product variants have visibility=1 !
-        filters['visibility'] = {'eq': 4}
+        '''
+        const VISIBILITY_NOT_VISIBLE    = 1;
+        const VISIBILITY_IN_CATALOG     = 2;
+        const VISIBILITY_IN_SEARCH      = 3;
+        const VISIBILITY_BOTH           = 4;        
+        '''
+        filters['visibility'] = {'gt': 1}
         filters['type_id'] = {'eq': 'simple'}
         filters['status'] = {'eq': 1}
         external_ids = self.backend_adapter.search(filters,
@@ -408,6 +413,9 @@ class ProductImporter(Component):
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)
         # Do import stock item
+        self._import_stock(binding)
+
+    def _import_stock(self, binding):
         stock_importer = self.component(usage='record.importer',
                                         model_name='magento.stock.item')
         stock_importer.run(self.magento_record['extension_attributes']['stock_item'])
