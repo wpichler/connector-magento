@@ -53,6 +53,8 @@ class MagentoStockItemImportMapper(Component):
 
     @mapping
     def backorders(self, record):
+        if 'backorders' not in record:
+            return {}
         map = {
             0: 'no',
             1: 'yes',

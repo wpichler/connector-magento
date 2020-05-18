@@ -20,7 +20,7 @@
         <field name="name">magento.stock.warehouse.form</field>
         <field name="model">magento.stock.warehouse</field>
         <field name="arch" type="xml">
-            <form string="Magento Warehouse" create="false" delete="false">
+            <form string="Magento Warehouse">
                 <group>
                     <field name="backend_id"/>
                     <field name="external_id"/>
@@ -40,8 +40,7 @@
         <field name="name">magento.stock.warehouse.tree</field>
         <field name="model">magento.stock.warehouse</field>
         <field name="arch" type="xml">
-            <tree string="Magento Delivery Order"
-                    create="false" delete="false">
+            <tree string="Magento Delivery Order">
                 <field name="backend_id"/>
                 <field name="external_id"/>
                 <field name="odoo_id"/>
