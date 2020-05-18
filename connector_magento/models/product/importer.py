@@ -134,52 +134,6 @@ class CatalogImageImporter(Component):
         self._write_image_data(binding, binary, image_data)
 
 
-# TODO: not needed, use inheritance
-class BundleImporter(Component):
-    """ Can be inherited to change the way the bundle products are
-    imported.
-
-    Called at the end of the import of a product.
-
-    Example of action when importing a bundle product:
-        - Create a bill of material
-        - Import the structure of the bundle in new objects
-
-    By default, the bundle products are not imported: the jobs
-    are set as failed, because there is no known way to import them.
-    An additional module that implements the import should be installed.
-
-    If you want to create a custom importer for the bundles, you have to
-    inherit the Component::
-
-        class BundleImporter(Component):
-            _inherit = 'magento.product.bundle.importer'
-
-    And to add the bundle type in the supported product types::
-
-        class MagentoProductProduct(models.Model):
-            _inherit = 'magento.product.product'
-
-            @api.model
-            def product_type_get(self):
-                types = super(MagentoProductProduct, self).product_type_get()
-                if 'bundle' not in [item[0] for item in types]:
-                    types.append(('bundle', 'Bundle'))
-                return types
-
-    """
-    _name = 'magento.product.bundle.importer'
-    _inherit = 'magento.importer'
-    _apply_on = ['magento.product.product']
-    _usage = 'product.bundle.importer'
-
-    def run(self, binding, magento_record):
-        """ Import the bundle information about a product.
-
-        :param magento_record: product information from Magento
-        """
-
-
 class ProductImportMapper(Component):
     _name = 'magento.product.product.import.mapper'
     _inherit = 'magento.import.mapper'
