@@ -23,12 +23,12 @@ class MagentoStockItem(models.Model):
                 location = stockitem.magento_warehouse_id.location_id
                 product_fields = [stock_field]
                 if stockitem.product_type == 'product':
-                    record_with_location = stockitem.magento_product_binding_id.odoo_id.with_context(
-                        location=location.id)
+                    record_with_warehouse = stockitem.magento_product_binding_id.odoo_id.with_context(
+                        warehouse=stockitem.magento_warehouse_id.id)
                 else:
-                    record_with_location = stockitem.magento_product_template_binding_id.odoo_id.with_context(
-                        location=location.id)
-                result = record_with_location.read(product_fields)[0]
+                    record_with_warehouse = stockitem.magento_product_template_binding_id.odoo_id.with_context(
+                        warehouse=stockitem.magento_warehouse_id.id)
+                result = record_with_warehouse.read(product_fields)[0]
                 stockitem.calculated_qty = result[stock_field]
             elif stockitem.magento_warehouse_id.calculation_method == 'fix':
                 stockitem.calculated_qty = stockitem.magento_warehouse_id.fixed_quantity
