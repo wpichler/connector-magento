@@ -33,6 +33,7 @@ class MagentoStoreview(models.Model):
                                readonly=True)
     lang_id = fields.Many2one(comodel_name='res.lang', string='Language')
     team_id = fields.Many2one(comodel_name='crm.team', string='Sales Team')
+    warehouse_id = fields.Many2one(comodel_name='stock.warehouse', string='Warehouse', help='Warehouse for created sale orders')
     backend_id = fields.Many2one(
         comodel_name='magento.backend',
         related='store_id.website_id.backend_id',

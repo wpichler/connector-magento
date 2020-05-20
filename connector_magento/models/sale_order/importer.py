@@ -277,6 +277,12 @@ class SaleOrderImportMapper(Component):
             return {'team_id': team.id}
 
     @mapping
+    def warehouse(self, record):
+        warehouse = self.options.storeview.warehouse_id
+        if warehouse:
+            return {'warehouse_id': warehouse.id}
+
+    @mapping
     def project_id(self, record):
         project_id = self.options.storeview.account_analytic_id
         if project_id:
