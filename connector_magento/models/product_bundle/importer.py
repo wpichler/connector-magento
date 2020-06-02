@@ -119,11 +119,6 @@ class ProductBundleImporter(Component):
         return binding
 
     def _after_import(self, binding):
-        # Import Images
-        image_importer = self.component(usage='bundle.image.importer')
-        image_importer.run(self.external_id, binding,
-                           data=self.magento_record)
-        # TODO Import Bundles
         self._import_options(binding)
 
         # Do also import translations
@@ -147,6 +142,13 @@ class ProductBundleImporter(Component):
             # We do search binding using attribute_code - default is attribute_id !
             self._import_dependency(attribute['attribute_code'],
                                     'magento.product.attribute', external_field='attribute_code')
+        category_links = record['extension_attributes']['category_links']
+        binder = self.binder_for('magento.product.category')
+        for category_link in category_links:
+            cat = binder.to_internal(category_link['category_id'], unwrap=True)
+            if not cat:
+                self._import_dependency(category_link['category_id'],
+                                        'magento.product.category')
 
 
 class ProductBundleImportMapper(Component):
