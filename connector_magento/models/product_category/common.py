@@ -10,6 +10,8 @@ from odoo import models, fields, api
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
+from odoo.addons.queue_job.job import job, related_action
+from odoo.addons.queue_job.job import identity_exact
 
 _logger = logging.getLogger(__name__)
 
@@ -63,14 +65,18 @@ class MagentoProductCategory(models.Model):
     )
 
     @api.multi
+    @job(default_channel='root.magento')
     def sync_from_magento(self):
+        for binding in self:
+            binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def run_sync_from_magento(self):
         self.ensure_one()
         with self.backend_id.work_on(self._name) as work:
-            if self.backend_id.product_synchro_strategy == 'odoo_first':
-                return
-            else:
-                importer = work.component(usage='record.importer')
-                return importer.run(self.external_id, force=True)
+            importer = work.component(usage='record.importer')
+            return importer.run(self.external_id, force=True)
 
     @api.multi
     def update_products(self):

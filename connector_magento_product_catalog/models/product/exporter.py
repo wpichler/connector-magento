@@ -6,7 +6,7 @@ import odoo
 from datetime import datetime
 
 from odoo.addons.component.core import Component
-from odoo.addons.connector.unit.mapper import mapping
+from odoo.addons.connector.components.mapper import mapping, only_create
 from slugify import slugify
 from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DATETIME_FORMAT
 import magic

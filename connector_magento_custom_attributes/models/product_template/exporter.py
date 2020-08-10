@@ -7,7 +7,7 @@ import odoo
 from datetime import datetime
 
 from odoo.addons.component.core import Component
-from odoo.addons.connector.unit.mapper import mapping, only_create
+from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.queue_job.job import identity_exact
 from odoo.addons.connector.exception import MappingError
 from slugify import slugify

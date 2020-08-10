@@ -4,7 +4,7 @@
 
 from odoo import _
 from odoo.addons.component.core import Component
-from odoo.addons.connector.unit.mapper import mapping
+from odoo.addons.connector.components.mapper import mapping, only_create
 import os.path
 import logging
 
