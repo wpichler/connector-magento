@@ -83,14 +83,13 @@ class AttributeImportMapper(Component):
     
     
     def _attribute_exists(self, attribute):
-        att_ids = self.env['product.attribute'].search(
-            [('name', '=', attribute)]
-            )
-        if len(att_ids) == 0:
+        att_ids = self.env['product.attribute'].search([
+            ('name', '=ilike', attribute)
+        ], limit=1)
+        if not att_ids:
             return False
-        return att_ids[0]
-        
-    
+        return att_ids
+
     @only_create
     @mapping
     def get_att_id(self, record):

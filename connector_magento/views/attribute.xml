@@ -12,7 +12,6 @@
         <field name="inherit_id" ref="product.attribute_tree_view" />
         <field name="arch" type="xml">
             <field name="create_variant" position="after">
-                <field name="value_ids" readonly="1"/>
                 <field name="magento_bind_ids"  widget="many2many_tags" readonly="1"/>
                 <button type="action" name="%(connector_magento.attribute_add_backend_action)d" string="Export to magento"/>
             </field>

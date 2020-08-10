@@ -59,7 +59,7 @@ class AttributeSet(Component):
       
     def _after_import(self, binding):
         """ Hook called at the end of the import """
-        adapter = self.component(usage='backend.adapter',model_name='magento.product.attributes.set')
+        adapter = self.component(usage='backend.adapter', model_name='magento.product.attributes.set')
         importer = self.component(usage='record.importer', model_name='magento.product.attribute')
         
         details = adapter.read_detail(self.external_id)
