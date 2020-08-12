@@ -8,6 +8,7 @@ import logging
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 import uuid
+from odoo import tools
 
 _logger = logging.getLogger(__name__)
 
@@ -26,7 +27,22 @@ class AttributeBatchImporter(Component):
 class AttributeImporter(Component):
     _name = 'magento.product.attribute.import'
     _inherit = ['magento.importer']
+    _apply_on = ['magento.product.attribute']
     _magento_id_field = 'attribute_id'
+
+    def _after_import(self, binding):
+        record = self.magento_record
+        importer = self.component(
+            usage='record.importer',
+            model_name='magento.product.attribute.value'
+        )
+        # Do import attribute values here
+        for i in range(len(record['options'])):
+            value = record['options'][i]
+            if not value['value']:
+                continue
+            value['external_id'] = "%s_%s" % (str(record.get('attribute_id')), tools.ustr(value.get('value')))
+            importer.run(value, magento_attribute=binding)
 
     def _before_import(self):
         record = self.magento_record
@@ -51,6 +67,8 @@ class AttributeImporter(Component):
         self._validate_data(data)
         binding.with_context(connector_no_export=True).write(data)
         _logger.debug('%d updated from magento %s', binding, self.external_id)
+        # Disabled for now - should be configurable using backend option
+        '''
         record = self.magento_record
         values = [r['value'] for r in record['options']]
         _logger.info("Got values from magento: %s", values)
@@ -63,6 +81,7 @@ class AttributeImporter(Component):
             ('code', 'not in', values),
         ], odoo_magento_values)
         odoo_magento_values.with_context(connector_no_export=True).unlink()
+        '''
         return
 
 
@@ -77,19 +96,6 @@ class AttributeImportMapper(Component):
               ('attribute_id', 'external_id'),
               ('frontend_input', 'frontend_input')]
     
-    children = [
-        ('options', 'magento_attribute_value_ids', 'magento.product.attribute.value'),
-    ]
-    
-    
-    def _attribute_exists(self, attribute):
-        att_ids = self.env['product.attribute'].search([
-            ('name', '=ilike', attribute)
-        ], limit=1)
-        if not att_ids:
-            return False
-        return att_ids
-
     @only_create
     @mapping
     def get_att_id(self, record):
@@ -97,8 +103,10 @@ class AttributeImportMapper(Component):
         if self.backend_record.always_create_new_attributes:
             return {}
         # Else search for existing attribute
-        att_id = self._attribute_exists(self._get_name(record)['name'])
-        if att_id and len(att_id) == 1:
+        att_id = self.env['product.attribute'].search([
+            ('name', '=ilike', self._get_name(record)['name'])
+        ], limit=1)
+        if att_id:
             return {'odoo_id': att_id.id}
         return {}
     
@@ -118,11 +126,3 @@ class AttributeImportMapper(Component):
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
-    
-    @mapping
-    def odoo_id(self, record):
-        """ Will bind the attribute to an existing one with the same code """
-        attribute = self.env['magento.product.attribute'].search(
-            [('attribute_code', '=', record['attribute_code']),('backend_id', '=', self.backend_record.id)], limit=1)
-        if attribute:
-            return {'odoo_id': attribute.odoo_id.id}

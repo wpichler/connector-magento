@@ -5,28 +5,30 @@ import urllib.request, urllib.parse, urllib.error
 _logger = logging.getLogger(__name__)
 
 
-
 class MagentoProductAttributevalue(models.Model):
     _name = 'magento.product.attribute.value'
     _inherit = 'magento.binding'
-    _inherits = {'product.attribute.value': 'odoo_id'}
+    #_inherits = {'product.attribute.value': 'odoo_id'}
     _description = 'Magento attribute value'
     
     odoo_id = fields.Many2one(comodel_name='product.attribute.value',
                               string='Product attribute value',
-                              required=True,
+                              required=False, # Was True
                               ondelete='restrict')
     magento_attribute_id = fields.Many2one(comodel_name='magento.product.attribute',
                                        string='Magento Product Attribute',
                                        required=True,
                                        ondelete='cascade',
                                        index=True)
+    attribute_id = fields.Many2one(related='magento_attribute_id.odoo_id')
+    name = fields.Char(related='odoo_id.name')
     magento_attribute_type = fields.Selection(
          related="magento_attribute_id.frontend_input",
          store=True
         )
     # The real magento code - external_id is a combination of attribute_id + _ + code
     code = fields.Char('Magento Code for the value')
+    label = fields.Char('Magento Label')
     main_text_code = fields.Char('Main text code eg. swatch or default value')
     backend_id = fields.Many2one(
         related='magento_attribute_id.backend_id',
@@ -37,13 +39,6 @@ class MagentoProductAttributevalue(models.Model):
         required=False,
     )
 
-    @api.model
-    def create(self, vals):
-        if 'attribute_id' not in vals:
-            # On first create we do need this because attribute_id is missing
-            vals['attribute_id'] = self.env['magento.product.attribute'].browse(vals['magento_attribute_id']).odoo_id.id
-        return super(MagentoProductAttributevalue, self).create(vals)
-
 
 class ProductAttributevalue(models.Model):
     _inherit = 'product.attribute.value'
@@ -53,24 +48,7 @@ class ProductAttributevalue(models.Model):
         inverse_name='odoo_id',
         string='Magento Bindings',
     )
-    
-    
 
-# class ProductAttributeValueBinder(Component):
-#     """ Bind records and give odoo/magento ids correspondence
-# 
-#     Binding models are models called ``magento.{normal_model}``,
-#     like ``magento.res.partner`` or ``magento.product.product``.
-#     They are ``_inherits`` of the normal models and contains
-#     the Magento ID, the ID of the Magento Backend and the additional
-#     fields belonging to the Magento instance.
-#     """
-#     _name = 'magento.product.attribute.value.binder'
-#     _inherit = 'magento.binder'
-#     _apply_on = ['magento.product.attribute.value']
-#     
-# #     _usage = 'binder'
-    
 
 class ProductAttributeValueAdapter(Component):
     _name = 'magento.product.attribute.value.adapter'
@@ -91,11 +69,11 @@ class ProductAttributeValueAdapter(Component):
             # TODO: storeview_code context in Magento 2.0
             res_admin = super(ProductAttributeValueAdapter, self).read(
                 id, attributes=attributes, storeview_code='all')
-            if res:
-                for attr in res.get('custom_attributes', []):
-                    res[attr['attribute_code']] = attr['value']
-            return res
-        return super(ProductAttributeAdapter, self).read(id, storeview_code=None, attributes=None)
+            if res_admin:
+                for attr in res_admin.get('custom_attributes', []):
+                    res_admin[attr['attribute_code']] = attr['value']
+            return res_admin
+        return super(ProductAttributeValueAdapter, self).read(id, storeview_code=None, attributes=None)
 
     def _create_url(self, binding=None):
         return '%s' % (self._magento2_model % {'attributeCode': binding.magento_attribute_id.attribute_code})

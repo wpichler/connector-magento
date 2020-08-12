@@ -242,12 +242,16 @@ class ProductImportMapper(Component):
     def no_stock_sync(self, record):
         return {'no_stock_sync': self.backend_record.no_stock_sync}
 
+    def _get_odoo_product(self, record):
+        return self.env['product.product'].search([
+            ('default_code', '=', record['sku'])
+        ], limit=1)
+
     @only_create
     @mapping
     def odoo_id(self, record):
         """ Will bind the product to an existing one with the same code """
-        product = self.env['product.product'].search(
-            [('default_code', '=', record['sku'])], limit=1)
+        product = self._get_odoo_product(record)
         if product:
             return {'odoo_id': product.id}
 

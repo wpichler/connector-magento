@@ -14,6 +14,7 @@
  'website': 'http://www.odoo-magento-connector.com',
  'data': [
      'views/product_category_views.xml',
+     'views/product_views.xml',
  ],
  'installable': True,
  'auto_install': True,

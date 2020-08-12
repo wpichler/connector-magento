@@ -28,7 +28,7 @@
 			<field name="model">magento.product.attribute.value</field>
 			<field name="arch" type="xml">
 				<tree>
-					<field name="name" />
+					<field name="label" />
 					<field name="main_text_code" />
 					<field name="external_id" />
 					<field name="odoo_id" />

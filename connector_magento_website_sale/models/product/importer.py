@@ -28,6 +28,7 @@ class ProductImportMapper(Component):
                                    mag_category_id)
             category_ids.append(cat.public_categ_id.id)
         result = {'public_categ_ids': [(6, 0, category_ids)]}
-        if self.options.for_create:
+        product = self._get_odoo_product(record)
+        if self.options.for_create and not product:
             result['categ_id'] = self.backend_record.default_category_id.id or None
         return result

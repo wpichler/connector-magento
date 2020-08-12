@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<record id="view_magento_product_form" model="ir.ui.view">
+		<field name="name">magento.product.product.form</field>
+		<field name="model">magento.product.product</field>
+		<field name="inherit_id" ref="connector_magento.view_magento_product_form"/>
+		<field name="arch" type="xml">
+			<notebook position="inside">
+				<page name="public_categories" string="Webshop Categories">
+					<label for="public_categ_ids"/>
+					<field name="public_categ_ids" nolabel="1"/>
+				</page>
+			</notebook>
+		</field>
+	</record>
+
+</odoo>
