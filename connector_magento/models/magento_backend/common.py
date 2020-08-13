@@ -495,14 +495,10 @@ class MagentoBackend(models.Model):
 
     @api.multi
     def update_product_stock_qty(self):
-        magento_products = self.env['magento.product.product'].search([
+        magento_stock_items = self.env['magento.stock.item'].search([
             ('backend_id', 'in', self.ids),
-            ('type', '!=', 'service'),
-            ('no_stock_sync', '=', False),
         ])
-        _logger.info("Got products for stock sync: %s", magento_products)
-        for mproduct in magento_products:
-            mproduct.magento_stock_item_ids.filtered(lambda si: si.backend_id.id in self.ids).sync_to_magento(True)
+        magento_stock_items.sync_to_magento(True)
         return True
 
     @api.model
