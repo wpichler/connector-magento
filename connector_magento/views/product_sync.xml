@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+       <record id="magento_product_sync_form" model="ir.ui.view">
+           <field name="name">Magento Product Sync Form</field>
+           <field name="model">magento.product.sync</field>
+           <field name="arch" type="xml">
+               <form string="Magento Product Sync">
+                   <header>
+                       <button type="object" name="button_delete_binding" string="Delete binding" attrs="{'invisible':  [('side', '!=', 'odoo')]}"/>
+                       <button type="object" name="button_sync_from_magento" string="Sync from Magento" attrs="{'invisible':  [('side', '!=', 'both')]}"/>
+                   </header>
+                   <sheet>
+                       <div class="oe_title">
+                           <h1><field name="name"/></h1>
+                           <field name="side"/>
+                           <p><field name="error"/></p>
+                       </div>
+                       <group>
+                           <group name="magento" string="Magento Data">
+                               <field name="magento_type_id"/>
+                               <field name="magento_sku"/>
+                               <field name="magento_id"/>
+                               <field name="magento_price"/>
+                               <field name="magento_url_key"/>
+                               <field name="magento_status"/>
+                               <field name="magento_visibility"/>
+                           </group>
+                           <group name="odoo" string="Odoo Data">
+                               <field name="magento_product_id"/>
+                               <field name="magento_template_id"/>
+                               <field name="magento_bundle_id"/>
+                           </group>
+                       </group>
+                       <label for="magento_raw"/>
+                       <field name="magento_raw" nolabel="1"/>
+                   </sheet>
+               </form>
+           </field>
+       </record>
+
+        <record id="magento_product_sync_tree" model="ir.ui.view">
+           <field name="name">Magento Product Sync Tree</field>
+           <field name="model">magento.product.sync</field>
+            <field name="arch" type="xml">
+                <tree string="Magento Product Sync">
+                    <field name="name"/>
+                    <field name="side"/>
+                    <field name="magento_sku"/>
+                    <field name="magento_id"/>
+                    <field name="magento_status"/>
+                    <field name="magento_visibility"/>
+                    <field name="magento_type_id"/>
+                    <field name="magento_price"/>
+                    <field name="magento_product_id"/>
+                    <field name="magento_template_id"/>
+                    <field name="magento_bundle_id"/>
+                    <field name="error"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="magento_product_sync_search" model="ir.ui.view">
+           <field name="name">Magento Product Sync Search</field>
+           <field name="model">magento.product.sync</field>
+            <field name="arch" type="xml">
+                <search string="Suche">
+                    <field name="name"/>
+                    <field name="magento_sku" string="Product"/>
+                    <field name="magento_id" string="Configurable"/>
+                    <separator/>
+                    <filter string="Standalone Products" domain="[('magento_type_id', '=', 'simple')]" help="Standalone Products" name="simple"/>
+                    <filter string="Configurable Products" domain="[('magento_type_id', '=', 'configurable')]" help="Standalone Products" name="configurable"/>
+                    <filter string="Bundle Products" domain="[('magento_type_id', '=', 'bundle')]" help="Standalone Products" name="bundle"/>
+                    <separator/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Side"
+                                name="group_side"
+                                icon="terp-folder-orange"
+                                domain="[]"
+                                context="{'group_by':'side'}"/>
+                        <filter string="Status"
+                                name="group_status"
+                                icon="terp-folder-orange"
+                                domain="[]"
+                                context="{'group_by':'magento_status'}"/>
+                        <filter string="Visibility"
+                                name="group_visibility"
+                                icon="terp-folder-orange"
+                                domain="[]"
+                                context="{'group_by':'magento_visibility'}"/>
+                        <filter string="Configurable"
+                                name="group_configureable"
+                                icon="terp-folder-orange"
+                                domain="[]"
+                                context="{'group_by':'magento_configurable_id'}"/>
+                    </group>
+                </search>
+           </field>
+        </record>
+
+        <record id="magento_product_sync_action" model="ir.actions.act_window">
+            <field name="name">Magento Product Sync</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">magento.product.sync</field>
+            <field name="view_mode">tree,form</field>
+            <field name="limit">1000</field>
+        </record>
+    </data>
+</odoo>

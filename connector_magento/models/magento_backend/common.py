@@ -15,6 +15,7 @@ from odoo.addons.component.core import Component
 from odoo.addons.connector.models import checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
 from odoo.addons.queue_job.job import identity_exact
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -342,64 +343,115 @@ class MagentoBackend(models.Model):
 
     @api.multi
     def button_check_products(self):
-        for backend in self:
-            with backend.work_on("magento.product.template") as work:
-                adapter = work.component(usage='backend.adapter')
-                filters = {}
-                products = adapter.search_read(filters)
-                tskus = []
-                pskus = []
-                bskus = []
-                for product in products['items']:
-                    if product['type_id'] == 'configurable':
-                        tskus.append(product['sku'])
-                        binding = self.env['magento.product.template'].search([
-                            ('backend_id', '=', backend.id),
-                            ('external_id', '=', product['sku']),
-                            ('active', 'in', [True,False]),
-                        ])
-                    elif product['type_id'] == 'bundle':
-                        bskus.append(product['sku'])
-                        binding = self.env['magento.product.bundle'].search([
-                            ('backend_id', '=', backend.id),
-                            ('external_id', '=', product['sku']),
-                            ('active', 'in', [True,False]),
-                        ])
-                    else:
-                        pskus.append(product['sku'])
-                        binding = self.env['magento.product.product'].search([
-                            ('backend_id', '=', backend.id),
-                            ('external_id', '=', product['sku']),
-                            ('active', 'in', [True, False]),
-                        ])
-                    if not binding:
-                        _logger.info("Found Magento product without binding: %s with status=%s,type=%s", product['sku'], product['status'], product['type_id'])
-                        continue
-                    if binding.magento_id != product['id']:
-                        _logger.info("Binding ID does not match magento ID !. %s, %s", product, binding)
-                    if not binding.magento_url_key:
-                        for cattribute in product['custom_attributes']:
-                            if cattribute['attribute_code'] == 'url_key' and cattribute['value']:
-                                _logger.info("Do update stored url key to %s", cattribute['value'])
-                                binding.with_context(connector_no_export=True).magento_url_key = cattribute['value']
-                tbindings = self.env['magento.product.template'].search([
-                    ('backend_id', '=', backend.id),
-                    ('external_id', 'not in', tskus)
-                ])
-                if tbindings:
-                    _logger.info("These template bindings do not have a magento configurable: %s", tbindings)
-                pbindings = self.env['magento.product.product'].search([
-                    ('backend_id', '=', backend.id),
-                    ('external_id', 'not in', pskus)
-                ])
-                if pbindings:
-                    _logger.info("These product bindings do not have a magento product: %s", pbindings)
-                bbindings = self.env['magento.product.bundle'].search([
-                    ('backend_id', '=', backend.id),
-                    ('external_id', 'not in', bskus)
-                ])
-                if bbindings:
-                    _logger.info("These product bundle bindings do not have a magento product: %s", bbindings)
+        self.ensure_one()
+        backend = self
+        with backend.work_on("magento.product.template") as work:
+            adapter = work.component(usage='backend.adapter')
+            filters = {}
+            filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
+            _logger.info("Do read magento products from magento")
+            products = adapter.search_read(filters)
+            _logger.info("Got %s products", len(products['items']))
+            # First - create magento.product.sync entries - do delete old ones first
+            self.env['magento.product.sync'].search([('backend_id', '=', backend.id)]).unlink()
+            tskus = []
+            pskus = []
+            bskus = []
+            for product in products['items']:
+                binding = None
+                if product['type_id'] == 'configurable':
+                    tskus.append(product['sku'])
+                    binding = self.env['magento.product.template'].search([
+                        ('backend_id', '=', backend.id),
+                        ('external_id', '=', product['sku']),
+                        ('active', 'in', [True, False]),
+                    ])
+                elif product['type_id'] == 'bundle':
+                    bskus.append(product['sku'])
+                    binding = self.env['magento.product.bundle'].search([
+                        ('backend_id', '=', backend.id),
+                        ('external_id', '=', product['sku']),
+                        ('active', 'in', [True, False]),
+                    ])
+                elif product['type_id'] == 'simple':
+                    pskus.append(product['sku'])
+                    binding = self.env['magento.product.product'].search([
+                        ('backend_id', '=', backend.id),
+                        ('external_id', '=', product['sku']),
+                        ('active', 'in', [True, False]),
+                    ])
+                url_key = None
+                for cattribute in product['custom_attributes']:
+                    if cattribute['attribute_code'] == 'url_key' and cattribute['value']:
+                        url_key = cattribute['value']
+                        if binding:
+                            binding.with_context(connector_no_export=True).magento_url_key = cattribute['value']
+                        break
+                error = None
+                if binding.magento_id != product['id']:
+                    error = "Binding ID does not match magento ID !. %s, %s" % (product, binding, )
+                self.env['magento.product.sync'].create({
+                    'name': product['name'],
+                    'backend_id': backend.id,
+                    'magento_raw': json.dumps(product, indent=4, sort_keys=True),
+                    'side': 'magento' if not binding else 'both',
+                    'magento_type_id': product['type_id'],
+                    'magento_sku': product['sku'],
+                    'magento_price': product['price'],
+                    'magento_id': product['id'],
+                    'magento_url_key': url_key,
+                    'magento_visibility': str(product['visibility']),
+                    'magento_status': str(product['status']),
+                    'magento_product_id': binding.id if binding and product['type_id'] == 'simple' else None,
+                    'magento_template_id': binding.id if binding and product['type_id'] == 'configurable' else None,
+                    'magento_bundle_id': binding.id if binding and product['type_id'] == 'bundle' else None,
+                    'error': error,
+                })
+            tbindings = self.env['magento.product.template'].search([
+                ('backend_id', '=', backend.id),
+                ('external_id', 'not in', tskus)
+            ])
+            for binding in tbindings:
+                self.env['magento.product.sync'].create({
+                    'name': binding.name,
+                    'backend_id': backend.id,
+                    'side': 'odoo',
+                    'magento_product_id': None,
+                    'magento_template_id': binding.id,
+                    'magento_bundle_id': None,
+                    'error': "Template binding without magento configureable",
+                })
+            pbindings = self.env['magento.product.product'].search([
+                ('backend_id', '=', backend.id),
+                ('external_id', 'not in', pskus)
+            ])
+            for binding in pbindings:
+                self.env['magento.product.sync'].create({
+                    'name': binding.name,
+                    'backend_id': backend.id,
+                    'side': 'odoo',
+                    'magento_product_id': binding.id,
+                    'magento_template_id': None,
+                    'magento_bundle_id': None,
+                    'error': "Product binding without magento configureable",
+                })
+            bbindings = self.env['magento.product.bundle'].search([
+                ('backend_id', '=', backend.id),
+                ('external_id', 'not in', bskus)
+            ])
+            for binding in bbindings:
+                self.env['magento.product.sync'].create({
+                    'name': binding.name,
+                    'backend_id': backend.id,
+                    'side': 'odoo',
+                    'magento_product_id': None,
+                    'magento_template_id': None,
+                    'magento_bundle_id': binding.id,
+                    'error': "Bundle binding without magento configureable",
+                })
+        action = self.env.ref('connector_magento.magento_product_sync_action').read()[0]
+        action['domain'] = [('backend_id', '=', self.id)]
+        return action
 
     @api.multi
     def import_partners(self):

@@ -103,8 +103,7 @@
 		</field>
 	</record>
 
-	<record id="magento_product_product_tree_view"
-		model="ir.ui.view">
+	<record id="magento_product_product_tree_view" model="ir.ui.view">
 		<field name="name">magento.product.product.tree</field>
 		<field name="model">magento.product.product</field>
 

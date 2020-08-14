@@ -15,7 +15,7 @@ class ProductMediaExportMapper(Component):
         if not record.type == 'product_image_ids':
             return super(ProductMediaExportMapper, self).get_content(record)
         return {'content': {
-            'base64_encoded_data': record.odoo_id.image,
+            'base64_encoded_data': record.odoo_id.image.decode('ascii'),
             'type': record.mimetype,
             'name': os.path.basename(record.file),
         }}

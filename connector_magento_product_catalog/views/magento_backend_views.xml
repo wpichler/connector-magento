@@ -26,4 +26,18 @@
 
 		</field>
 	</record>
+
+	<!-- Inherit Form View to Modify it -->
+	<record id="magento_product_sync_form" model="ir.ui.view">
+	   <field name="name">Magento Product Sync Form</field>
+	   <field name="model">magento.product.sync</field>
+	    <field name="inherit_id" ref="connector_magento.magento_product_sync_form"/>
+	    <field name="arch" type="xml">
+
+	        <xpath expr="//header" position="inside">
+				<button type="object" name="button_sync_to_magento" string="Sync to Magento" attrs="{'invisible':  [('side', '!=', 'both')]}"/>
+	        </xpath>
+
+	    </field>
+	</record>
 </odoo>

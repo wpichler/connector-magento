@@ -115,7 +115,7 @@ class ProductMediaExportMapper(Component):
     @mapping
     def get_content(self, record):
         return {'content': {
-            'base64_encoded_data': record.magento_product_id.image if record.magento_product_id else record.magento_product_tmpl_id.image,
+            'base64_encoded_data': record.magento_product_id.image.decode('ascii') if record.magento_product_id else record.magento_product_tmpl_id.image.decode('ascii'),
             'type': record.mimetype,
             'name': os.path.basename(record.file),
         }}

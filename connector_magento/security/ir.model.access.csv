@@ -1,6 +1,7 @@
 "id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
 "access_magento_backend","magento_backend connector manager","model_magento_backend","connector.group_connector_manager",1,1,1,1
 "access_magento_binding","magento_binding connector manager","model_magento_binding","connector.group_connector_manager",1,1,1,1
+"access_magento_product_sync","magento_product_sync connector manager","model_magento_product_sync","connector.group_connector_manager",1,1,1,1
 "access_magento_website","magento_website connector manager","model_magento_website","connector.group_connector_manager",1,1,1,1
 "access_magento_store","magento_store connector manager","model_magento_store","connector.group_connector_manager",1,1,1,1
 "access_magento_storeview","magento_storeview connector manager","model_magento_storeview","connector.group_connector_manager",1,1,1,1

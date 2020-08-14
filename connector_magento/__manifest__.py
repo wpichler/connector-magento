@@ -52,6 +52,7 @@
           'views/template.xml',
           'wizards/add_backend.xml',
           'views/attribute.xml',
+          'views/product_sync.xml',
           ],
  'installable': True,
  'application': False,

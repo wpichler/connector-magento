@@ -126,6 +126,11 @@ class MagentoProductProduct(models.Model):
             importer = work.component(usage='record.importer')
             return importer.run(self.external_id, force=True)
 
+    def unlink(self):
+        for product in self:
+            product.magento_stock_item_ids.unlink()
+        return super(MagentoProductProduct, self).unlink()
+
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'

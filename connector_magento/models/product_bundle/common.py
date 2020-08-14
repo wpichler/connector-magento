@@ -102,16 +102,12 @@ class MagentoProductBundle(models.Model):
     def create(self, vals):
         return super(MagentoProductBundle, self).create(vals)
 
-'''
-                "option_id": 26,
-                "title": "choice jacket",
-                "required": true,
-                "type": "select",
-                "position": 1,
-                "sku": "GA990-06",
-                "product_links": [
+    def unlink(self):
+        for bundle in self:
+            bundle.bundle_option_ids.unlink()
+        return super(MagentoProductBundle, self).unlink()
 
-'''
+
 class MagentoBundleOption(models.Model):
     _name = 'magento.bundle.option'
     _inherit = 'magento.binding'

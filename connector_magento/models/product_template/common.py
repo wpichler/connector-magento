@@ -132,6 +132,12 @@ class MagentoProductTemplate(models.Model):
                     mvariant.attribute_set_id = vals['attribute_set_id']
         return super(MagentoProductTemplate, self).write(vals)
 
+    def unlink(self):
+        for template in self:
+            template.magento_stock_item_ids.unlink()
+            template.magento_product_ids.unlink()
+        return super(MagentoProductTemplate, self).unlink()
+
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
