@@ -348,7 +348,7 @@ class MagentoBackend(models.Model):
         with backend.work_on("magento.product.template") as work:
             adapter = work.component(usage='backend.adapter')
             filters = {}
-            filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
+            #filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
             _logger.info("Do read magento products from magento")
             products = adapter.search_read(filters)
             _logger.info("Got %s products", len(products['items']))
