@@ -353,8 +353,9 @@ class ProductProductExportMapper(Component):
                     'attribute_code': attribute_code,
                     'value': value
                 })
-        if record.backend_id.default_pricelist_id.discount_policy == 'without_discount' and record.with_context(
-                pricelist=record.backend_id.default_pricelist_id.id).price != record['lst_price']:
+        pricelist_price = record.with_context(
+                pricelist=record.backend_id.default_pricelist_id.id).price
+        if record.backend_id.default_pricelist_id.discount_policy == 'without_discount' and pricelist_price != record['lst_price'] and pricelist_price > 0:
             custom_attributes.append({
                 'attribute_code': 'special_price',
                 'value': record.with_context(pricelist=record.backend_id.default_pricelist_id.id).price
