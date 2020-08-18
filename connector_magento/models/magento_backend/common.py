@@ -169,7 +169,7 @@ class MagentoBackend(models.Model):
              "Note that a similar configuration exists "
              "for each storeview.",
     )
-    default_pricelist_id = fields.Many2one('product.pricelist', string="Default pricelist")
+    pricelist_id = fields.Many2one('product.pricelist', string="Default pricelist")
     default_category_id = fields.Many2one(
         comodel_name='product.category',
         string='Default Product Category',
@@ -615,6 +615,18 @@ class MagentoConfigSpecializer(models.AbstractModel):
         'The value can also be specified on website or the store or the '
         'store view.'
     )
+    specific_pricelist_id = fields.Many2one(
+        comodel_name='product.pricelist',
+        string='Specific pricelist',
+        help='If specified, this pricelist will be used to load fill the '
+        'field pricelist on the sale order created by the '
+        'connector.'
+        'The value can also be specified on website or the store or the '
+        'store view.'
+    )
+    specific_sale_prefix = fields.Char(
+        string='Specific Sale Prefix',
+    )
     account_analytic_id = fields.Many2one(
         comodel_name='account.analytic.account',
         string='Analytic account',
@@ -629,10 +641,33 @@ class MagentoConfigSpecializer(models.AbstractModel):
         comodel_name='stock.warehouse',
         string='warehouse',
         compute='_compute_warehouse_id')
+    pricelist_id = fields.Many2one(
+        comodel_name='product.pricelist',
+        string='Pricelist',
+        compute='_compute_pricelist_id'
+    )
+    sale_prefix = fields.Char(
+        string='Sale Prefix',
+        compute='_compute_sale_prefix'
+    )
 
     @property
     def _parent(self):
         return getattr(self, self._parent_name)
+
+    @api.multi
+    def _compute_sale_prefix(self):
+        for this in self:
+            this.sale_prefix = (
+                this.specific_sale_prefix or
+                this._parent.sale_prefix)
+
+    @api.multi
+    def _compute_pricelist_id(self):
+        for this in self:
+            this.pricelist_id = (
+                this.specific_pricelist_id or
+                this._parent.pricelist_id)
 
     @api.multi
     def _compute_account_analytic_id(self):

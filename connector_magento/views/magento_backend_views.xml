@@ -51,6 +51,10 @@
 						<field name="is_multi_company" invisible="1" />
 						<field name="warehouse_id" class="oe_read_only" />
 						<field name="specific_warehouse_id" class="oe_edit_only" />
+						<field name="pricelist_id" class="oe_read_only"/>
+						<field name="specific_pricelist_id" class="oe_edit_only"/>
+						<field name="sale_prefix" class="oe_read_only"/>
+						<field name="specific_sale_prefix" class="oe_edit_only"/>
 					</group>
 					<notebook>
 						<page name="import" string="Imports">
@@ -123,6 +127,10 @@
 						<field name="is_multi_company" invisible="1" />
 						<field name="warehouse_id" class="oe_read_only"/>
 						<field name="specific_warehouse_id" class="oe_edit_only"/>
+						<field name="pricelist_id" class="oe_read_only"/>
+						<field name="specific_pricelist_id" class="oe_edit_only"/>
+						<field name="sale_prefix" class="oe_read_only"/>
+						<field name="specific_sale_prefix" class="oe_edit_only"/>
 						<field name="send_picking_done_mail" />
 						<field name="send_invoice_paid_mail" />
 						<field name="create_invoice_on" />
@@ -187,6 +195,10 @@
 						<field name="is_multi_company" invisible="1" />
 						<field name="warehouse_id" class="oe_read_only" />
 						<field name="specific_warehouse_id" class="oe_edit_only" />
+						<field name="pricelist_id" class="oe_read_only"/>
+						<field name="specific_pricelist_id" class="oe_edit_only"/>
+						<field name="sale_prefix" class="oe_read_only"/>
+						<field name="specific_sale_prefix" class="oe_edit_only"/>
 						<field name="team_id" options="{'no_create': True}"/>
 						<field name="lang_id" widget="selection" />
 						<field name="catalog_price_tax_included" />
@@ -482,7 +494,7 @@
 									<field name="fiscal_position_id" />
 									<field name="rounding_diff_account_id"/>
 									<field name="is_multi_company" />
-                                    <field name="default_pricelist_id"/>
+                                    <field name="pricelist_id"/>
                                     <field name="default_cod_product_id"/>
                                     <field name="default_gift_product_id"/>
 								</group>

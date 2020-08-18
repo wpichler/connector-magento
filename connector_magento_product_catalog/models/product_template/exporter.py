@@ -171,8 +171,8 @@ class ProductTemplateExportMapper(Component):
     
     @mapping
     def price(self, record):
-        if record.backend_id.default_pricelist_id.discount_policy=='with_discount':
-            price = record.with_context(pricelist=record.backend_id.default_pricelist_id.id).price
+        if record.backend_id.pricelist_id.discount_policy=='with_discount':
+            price = record.with_context(pricelist=record.backend_id.pricelist_id.id).price
         else:
             price = record['list_price']
         return {'price': price}

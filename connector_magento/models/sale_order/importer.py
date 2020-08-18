@@ -118,7 +118,6 @@ class SaleImportRule(Component):
 
 
 class SaleOrderImportMapper(Component):
-
     _name = 'magento.sale.order.mapper'
     _inherit = 'magento.import.mapper'
     _apply_on = 'magento.sale.order'
@@ -217,7 +216,7 @@ class SaleOrderImportMapper(Component):
     @mapping
     def name(self, record):
         name = record['increment_id']
-        prefix = self.backend_record.sale_prefix
+        prefix = self.options.storeview.sale_prefix
         if prefix:
             name = prefix + name
         return {'name': name}
@@ -302,8 +301,9 @@ class SaleOrderImportMapper(Component):
 
     @mapping
     def pricelist_id(self, record):
-        if self.backend_record.default_pricelist_id:
-            return {'pricelist_id': self.backend_record.default_pricelist_id.id}
+        pricelist = self.options.storeview.pricelist_id
+        if pricelist:
+            return {'pricelist_id': pricelist.id}
 
     # partner_id, partner_invoice_id, partner_shipping_id
     # are done in the importer

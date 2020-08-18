@@ -354,11 +354,11 @@ class ProductProductExportMapper(Component):
                     'value': value
                 })
         pricelist_price = record.with_context(
-                pricelist=record.backend_id.default_pricelist_id.id).price
-        if record.backend_id.default_pricelist_id.discount_policy == 'without_discount' and pricelist_price != record['lst_price'] and pricelist_price > 0:
+                pricelist=record.backend_id.pricelist_id.id).price
+        if record.backend_id.pricelist_id.discount_policy == 'without_discount' and pricelist_price != record['lst_price'] and pricelist_price > 0:
             custom_attributes.append({
                 'attribute_code': 'special_price',
-                'value': record.with_context(pricelist=record.backend_id.default_pricelist_id.id).price
+                'value': record.with_context(pricelist=record.backend_id.pricelist_id.id).price
             })
             record.with_context(connector_no_export=True).special_price_active = True
         custom_attributes.append(self.category_ids(record))
@@ -367,8 +367,8 @@ class ProductProductExportMapper(Component):
 
     @mapping
     def price(self, record):
-        if record.backend_id.default_pricelist_id.discount_policy=='with_discount':
-            price = record.with_context(pricelist=record.backend_id.default_pricelist_id.id).price
+        if record.backend_id.pricelist_id.discount_policy=='with_discount':
+            price = record.with_context(pricelist=record.backend_id.pricelist_id.id).price
         else:
             price = record['lst_price']
         return {
