@@ -198,7 +198,7 @@ class ProductTemplateExportMapper(Component):
 
     def configurable_product_options(self, record):
         option_ids = []
-        att_lines = record.attribute_line_ids.filtered(lambda l: l.attribute_id.create_variant == True and len(l.attribute_id.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)) > 0)
+        att_lines = record.attribute_line_ids.filtered(lambda l: l.attribute_id.create_variant in ['always', 'dynamic'] and len(l.attribute_id.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)) > 0)
         for l in att_lines:
             if not l.value_ids or len(l.value_ids) < 2:
                 # Do not export attributes with only one selectable value !
