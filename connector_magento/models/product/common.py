@@ -104,6 +104,7 @@ class MagentoProductProduct(models.Model):
         ('2', 'Disabled'),
         ('1', 'Enabled'),
     ], default='1', string="Status")
+    website_price_info = fields.Html(string="Storeview prices", compute='_compute_website_prices')
 
     _sql_constraints = [
         ('backend_magento_id_uniqueid',
@@ -111,6 +112,18 @@ class MagentoProductProduct(models.Model):
          'Duplicate binding of product detected, maybe SKU changed ?'
          ),
     ]
+
+    @api.multi
+    def _compute_website_prices(self):
+        for binding in self:
+            price_info = "<table><tr><th>Website</th><th>Price</th></tr>"
+            websites = binding.website_ids
+            if not websites:
+                websites = self.env['magento.website'].search([('backend_id', '=', binding.backend_id.id)])
+            for website in websites:
+                price = binding.odoo_id.with_context(pricelist=website.pricelist_id.id).price
+                price_info += "<tr><td>%s</td><td>%s</td></tr>" % (website.name, price, )
+            binding.website_price_info = price_info
 
     @api.multi
     @job(default_channel='root.magento')
@@ -125,6 +138,20 @@ class MagentoProductProduct(models.Model):
         with self.backend_id.work_on(self._name) as work:
             importer = work.component(usage='record.importer')
             return importer.run(self.external_id, force=True)
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def sync_prices_to_magento(self):
+        for binding in self:
+            binding.with_delay(identity_key=identity_exact).run_sync_prices_to_magento()
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def run_sync_prices_to_magento(self):
+        self.ensure_one()
+        with self.backend_id.work_on(self._name) as work:
+            exporter = work.component(usage='record.exporter.price')
+            return exporter.run(self)
 
     def unlink(self):
         for product in self:
@@ -215,9 +242,19 @@ class ProductProductAdapter(Component):
 
     def read_image(self, id, image_name, storeview_id=None):
         if self.work.magento_api._location.version == '2.0':
-            raise NotImplementedError  # TODO
+            raise NotImplementedError
         return self._call('product_media.info',
                           [int(id), image_name, storeview_id, 'id'])
+
+    def update_price(self, sku, storeview, price):
+        if not self.work.magento_api._location.version == '2.0':
+            raise NotImplementedError
+        _logger.info("Update price for website %s and product %s to %s", storeview, sku, price)
+        res = self._call('products/%s' % sku, {
+            "product": {
+                "price": str(price),
+            }
+        }, http_method="put", storeview=storeview)
 
 
 class MagentoBindingProductListener(Component):

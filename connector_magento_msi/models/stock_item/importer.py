@@ -4,6 +4,7 @@
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 
+
 class MagentoStockItemImporter(Component):
     _inherit = 'magento.stock.item.importer'
 

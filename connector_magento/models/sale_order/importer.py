@@ -232,13 +232,17 @@ class SaleOrderImportMapper(Component):
 
     @mapping
     def payment(self, record):
+        warehouse = self.options.storeview.warehouse_id
+        company_id = warehouse.company_id
         record_method = record['payment']['method']
-        binder = self.binder_for('magento.account.payment.mode')
-        method = binder.to_internal(record_method, unwrap=True)
-        assert method, ("method %s should exist because the import fails "
+        method_binding = self.env['magento.account.payment.mode'].search([
+            ('magento_payment_method', '=', record_method),
+            ('company_id', '=', company_id.id),
+        ])
+        assert method_binding, ("method %s for company %s should exist because the import fails "
                         "in SaleOrderImporter._before_import when it is "
-                        " missing" % record['payment']['method'])
-        return {'payment_mode_id': method.id}
+                        " missing" % (record['payment']['method']), company_id.name, )
+        return {'payment_mode_id': method_binding.odoo_id.id}
 
     @mapping
     def shipping_method(self, record):
@@ -292,12 +296,6 @@ class SaleOrderImportMapper(Component):
         fiscal_position = self.options.storeview.fiscal_position_id
         if fiscal_position:
             return {'fiscal_position_id': fiscal_position.id}
-
-    @mapping
-    def warehouse_id(self, record):
-        warehouse = self.options.storeview.warehouse_id
-        if warehouse:
-            return {'warehouse_id': warehouse.id}
 
     @mapping
     def pricelist_id(self, record):

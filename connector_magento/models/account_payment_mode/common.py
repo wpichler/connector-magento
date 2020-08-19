@@ -18,6 +18,8 @@ class MagentoAccountPaymentMode(models.Model):
                               required=True,
                               ondelete='restrict')
     magento_payment_method = fields.Char('Magento Payment Method Code')
+    company_id = fields.Many2one('res.company', string="Company")
+
 
 
 class AccountPaymentMode(models.Model):

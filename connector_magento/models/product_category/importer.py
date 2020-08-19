@@ -6,6 +6,9 @@
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductCategoryBatchImporter(Component):
@@ -86,6 +89,7 @@ class ProductCategoryImporter(Component):
 
     def _create(self, data):
         binding = super(ProductCategoryImporter, self)._create(data)
+        _logger.info("Created binding: %s", binding)
         self.backend_record.add_checkpoint(binding)
         return binding
 

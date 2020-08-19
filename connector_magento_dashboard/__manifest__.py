@@ -11,7 +11,7 @@ Adds a Dasboard to Magento Connector with most important Info and Functions
     'author': "Callino",
     'website': "http://www.callino.at",
     'depends': [
-        'connector_magento'
+        'web', 'connector_magento'
     ],
     'data': [
         'views/assets_backend.xml',

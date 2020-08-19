@@ -33,21 +33,14 @@
             <field name="name">Magento Dashboard</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">magento.backend</field>
-            <field name="view_mode">kanban</field>
+            <field name="view_mode">connector_magento_dashboard</field>
             <field name="target">main</field>
-        </record>
-
-        <record id="magento_backend_form_only_action_window" model="ir.actions.act_window">
-            <field name="name">Magento Dashboard</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">magento.backend</field>
-            <field name="view_mode">form</field>
-            <field name="target">main</field>
+            <field name="view_type">form</field>
         </record>
 
         <record model="ir.actions.act_window.view" id="magento_backend_dashboard_view_kanban_specification">
             <field name="sequence" eval="1"/>
-            <field name="view_mode">kanban</field>
+            <field name="view_mode">connector_magento_dashboard</field>
             <field name="view_id" ref="magento_backend_dashboard"/>
             <field name="act_window_id" ref="magento_backend_dashboard_action_window"/>
         </record>

@@ -20,7 +20,6 @@ class MagentoStockItem(models.Model):
         for stockitem in self:
             stock_field = stockitem.magento_warehouse_id.quantity_field or 'virtual_available'
             if stockitem.magento_warehouse_id.calculation_method == 'real':
-                location = stockitem.magento_warehouse_id.location_id
                 product_fields = [stock_field]
                 if stockitem.product_type == 'product':
                     record_with_warehouse = stockitem.magento_product_binding_id.odoo_id.with_context(

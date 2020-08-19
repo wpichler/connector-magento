@@ -553,6 +553,14 @@ class MagentoBackend(models.Model):
         magento_stock_items.sync_to_magento(True)
         return True
 
+    @api.multi
+    def update_product_prices(self):
+        magento_products = self.env['magento.product.product'].search([
+            ('backend_id', 'in', self.ids),
+        ])
+        magento_products.sync_prices_to_magento()
+        return True
+
     @api.model
     def _magento_backend(self, callback, domain=None):
         if domain is None:

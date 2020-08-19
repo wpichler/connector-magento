@@ -169,12 +169,9 @@ class ProductImportMapper(Component):
 
     @mapping
     def website_ids(self, record):
-        if self.work.magento_api._location.version == '2.0':
-            # https://github.com/magento/magento2/issues/3864
-            return {}
         website_ids = []
         binder = self.binder_for('magento.website')
-        for mag_website_id in record['websites']:
+        for mag_website_id in record['extension_attributes']['website_ids']:
             website_binding = binder.to_internal(mag_website_id)
             website_ids.append((4, website_binding.id))
         return {'website_ids': website_ids}
@@ -190,13 +187,14 @@ class ProductImportMapper(Component):
         main_categ_id = None
 
         for mag_category_id in mag_categories:
-            cat = binder.to_internal(mag_category_id, unwrap=True)
-            if not cat:
+            mcat = binder.to_internal(mag_category_id, unwrap=False)
+            if not mcat:
                 raise MappingError("The product category with "
                                    "magento id %s is not imported." %
                                    mag_category_id)
 
-            category_ids.append(cat.id)
+            if mcat.odoo_id:
+                category_ids.append(mcat.odoo_id.id)
 
         if category_ids:
             main_categ_id = category_ids.pop(0)
@@ -293,7 +291,8 @@ class ProductImporter(Component):
         record = self.magento_record
         # import related categories
         for mag_category_id in record.get(
-                'categories', record['category_ids']):
+                'categories', record.get('category_ids', None)):
+            _logger.info("Do import product category %s", mag_category_id)
             self._import_dependency(mag_category_id,
                                     'magento.product.category')
         for attribute in record.get('custom_attributes'):

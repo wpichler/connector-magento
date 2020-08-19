@@ -127,8 +127,6 @@
 						<field name="is_multi_company" invisible="1" />
 						<field name="warehouse_id" class="oe_read_only"/>
 						<field name="specific_warehouse_id" class="oe_edit_only"/>
-						<field name="pricelist_id" class="oe_read_only"/>
-						<field name="specific_pricelist_id" class="oe_edit_only"/>
 						<field name="sale_prefix" class="oe_read_only"/>
 						<field name="specific_sale_prefix" class="oe_edit_only"/>
 						<field name="send_picking_done_mail" />
@@ -195,8 +193,6 @@
 						<field name="is_multi_company" invisible="1" />
 						<field name="warehouse_id" class="oe_read_only" />
 						<field name="specific_warehouse_id" class="oe_edit_only" />
-						<field name="pricelist_id" class="oe_read_only"/>
-						<field name="specific_pricelist_id" class="oe_edit_only"/>
 						<field name="sale_prefix" class="oe_read_only"/>
 						<field name="specific_sale_prefix" class="oe_edit_only"/>
 						<field name="team_id" options="{'no_create': True}"/>
@@ -456,7 +452,15 @@
 										class="oe_inline" for="update_product_stock_qty"/>
 								</div>
 								<button name="update_product_stock_qty" type="object"
-									class="oe_highlight" string="Update" />
+									class="oe_highlight" string="Update Stock" />
+							</group>
+							<group>
+								<div>
+									<label string="Update all the product prices per storeview"
+										class="oe_inline" for="update_product_prices"/>
+								</div>
+								<button name="update_product_prices" type="object"
+									class="oe_highlight" string="Update Prices" />
 							</group>
 
 						</page>
