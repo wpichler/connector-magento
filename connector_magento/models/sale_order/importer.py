@@ -105,16 +105,21 @@ class SaleImportRule(Component):
         :returns: True if the sale order should be imported
         :rtype: boolean
         """
+        storeview_binder = self.binder_for('magento.storeview')
+        storeview = storeview_binder.to_internal(record['store_id'])
+        company = storeview.warehouse_id.company_id
         payment_method = record['payment']['method']
-        binder = self.binder_for('magento.account.payment.mode')
-        method = binder.to_internal(payment_method, unwrap=True)
-        if not method:
+        method_binding = self.env['magento.account.payment.mode'].search([
+            ('magento_payment_method', '=', payment_method),
+            ('company_id', '=', company.id),
+        ])
+        if not method_binding or not method_binding.odoo_id:
             raise FailedJobError(
-                "The configuration is missing for the Payment Mode '%s'.\n\n"
+                "The configuration is missing for the Payment Mode '%s' for the company %s.\n\n"
                 "Resolution:\n"
-                "- Create a new Payment Method Mapping" % (payment_method,))
-        self._rule_global(record, method)
-        self._rules[method.import_rule](self, record, method)
+                "- Create a new Payment Method Mapping" % (payment_method, company.name))
+        self._rule_global(record, method_binding.odoo_id)
+        self._rules[method_binding.odoo_id.import_rule](self, record, method_binding.odoo_id)
 
 
 class SaleOrderImportMapper(Component):
@@ -211,7 +216,10 @@ class SaleOrderImportMapper(Component):
         onchange = self.component(
             usage='ecommerce.onchange.manager.sale.order'
         )
-        return onchange.play(values, values['magento_order_line_ids'])
+        _logger.info("Order before onchange play: %s", values)
+        order = onchange.play(values, values['magento_order_line_ids'])
+        _logger.info("Order after onchange play: %s", order)
+        return order
 
     @mapping
     def name(self, record):
@@ -242,7 +250,10 @@ class SaleOrderImportMapper(Component):
         assert method_binding, ("method %s for company %s should exist because the import fails "
                         "in SaleOrderImporter._before_import when it is "
                         " missing" % (record['payment']['method']), company_id.name, )
-        return {'payment_mode_id': method_binding.odoo_id.id}
+        return {
+            'payment_mode_id': method_binding.odoo_id.id,
+            'company_id': company_id.id,
+        }
 
     @mapping
     def shipping_method(self, record):
@@ -353,7 +364,7 @@ class SaleOrderImporter(Component):
             if item.get('product_type') and item.get('product_type') == 'configurable':
                 continue
             if item.get('product_type') and item.get('product_type') == 'bundle':
-                item['bundle_items'] = [];
+                item['bundle_items'] = []
                 # We do append the child items to the bundle item - so the mapper does have them available in the record
                 for subitem in resource['items']:
                     if subitem.get('parent_item', False) and subitem['parent_item']['item_id'] == item['item_id']:

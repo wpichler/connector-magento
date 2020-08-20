@@ -67,6 +67,7 @@ class MagentoTrackingExporter(Component):
         external_id = binder.to_external(binding)
         if not external_id:
             picking_exporter = self.component(usage='record.exporter')
+            # Picking export does call the order/xyz/ship function with notify true
             picking_exporter.run(binding)
             external_id = binder.to_external(binding)
         if not external_id:
@@ -75,8 +76,10 @@ class MagentoTrackingExporter(Component):
                                   binding.name)
 
         self._validate(binding)
+        '''
         self.backend_adapter.notify_shipping(
             binding.magento_order_id.external_id,
             binding.get_notify_shipping_items(),
             binding.get_notify_shipping_tracks(),
         )
+        '''

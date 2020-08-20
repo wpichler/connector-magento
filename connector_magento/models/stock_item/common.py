@@ -17,7 +17,7 @@ class MagentoStockItem(models.Model):
 
     @api.depends('magento_warehouse_id', 'qty', 'magento_product_binding_id', 'magento_product_binding_id.no_stock_sync')
     def _compute_qty(self):
-        for stockitem in self:
+        for stockitem in self.sudo():
             stock_field = stockitem.magento_warehouse_id.quantity_field or 'virtual_available'
             if stockitem.magento_warehouse_id.calculation_method == 'real':
                 product_fields = [stock_field]
@@ -60,8 +60,8 @@ class MagentoStockItem(models.Model):
                                            required=True,
                                            ondelete='cascade')
     qty = fields.Float(string='Quantity', default=-999)
-    calculated_qty = fields.Float(string='Calculated Qty.', compute='_compute_qty')
-    should_export = fields.Boolean(string='Should Export', compute='_compute_qty')
+    calculated_qty = fields.Float(string='Calculated Qty.', compute='_compute_qty', compute_sudo=True)
+    should_export = fields.Boolean(string='Should Export', compute='_compute_qty', compute_sudo=True)
     min_sale_qty = fields.Float(string='Min Sale Qty', default=1.0)
     is_qty_decimal = fields.Boolean(string='Decimal Qty.', default=False)
     is_in_stock = fields.Boolean(string='In Stock From Magento')

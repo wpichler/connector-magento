@@ -11,6 +11,7 @@ from odoo.addons.queue_job.exception import NothingToDoJob
 
 _logger = logging.getLogger(__name__)
 
+
 class MagentoPickingExporter(Component):
     _name = 'magento.stock.picking.exporter'
     _inherit = 'magento.exporter'
@@ -84,10 +85,18 @@ class MagentoPickingExporter(Component):
                                     'contain lines from the original '
                                     'sale order.'))
             arguments = {
+                'notify': True,
                 'items': [{
                     'order_item_id': key,
                     'qty': val,
-                } for key, val in lines_info.items()]
+                } for key, val in lines_info.items()],
+                'tracks': [
+                    {
+                        "track_number": picking.carrier_tracking_ref,
+                        "title": picking.carrier_id.name if picking.carrier_id else 'Custom',
+                        "carrier_code": "custom"
+                    }
+                ]
             }
             magento_id = self.backend_adapter._call(
                 'order/%s/ship' % picking.sale_id.magento_bind_ids[0].external_id,

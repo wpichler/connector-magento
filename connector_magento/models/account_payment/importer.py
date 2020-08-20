@@ -58,13 +58,18 @@ class AccountPaymentImportMapper(Component):
     @mapping
     def payment_vars(self, record):
         payment_method = record['method']
-        binder = self.binder_for('magento.account.payment.mode')
-        method = binder.to_internal(payment_method, unwrap=True)
+        storeview = self.options.order_binding.storeview_id
+        company = storeview.warehouse_id.company_id
+        method_binding = self.env['magento.account.payment.mode'].search([
+            ('magento_payment_method', '=', payment_method),
+            ('company_id', '=', company.id),
+        ])
+        method = method_binding.odoo_id
         if not method:
             raise MappingError(
-                "The configuration is missing for the Payment Mode '%s'.\n\n"
+                "The configuration is missing for the Payment Mode '%s' for the company %s.\n\n"
                 "Resolution:\n"
-                "- Create a new Payment Method Mapping" % (payment_method,))
+                "- Create a new Payment Method Mapping" % (payment_method, company.name))
         if method.bank_account_link == 'variable' or not method.fixed_journal_id:
             raise MappingError(
                 "The configuration for the Payment Mode '%s'.\n\n"
