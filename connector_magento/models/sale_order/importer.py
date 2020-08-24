@@ -194,11 +194,25 @@ class SaleOrderImportMapper(Component):
             name = record['discount_description']
         if 'discount_code' in record:
             name = "%s (%s)" % (name, record['discount_code'], )
+        tax_id = None
+        if 'discount_tax_compensation_amount' in record and record.get('discount_tax_compensation_amount', 0) > 0:
+            # It seems that the discount does have a tax rate applied
+            tax = round((amount / (amount - record.get('discount_tax_compensation_amount', 0)) - 1)*100)
+            # Search for tax rate in odoo
+            warehouse = self.options.storeview.warehouse_id
+            company_id = warehouse.company_id
+            tax_id = self.env['account.tax'].search([
+                ('company_id', '=', company_id.id),
+                ('type_tax_use', '=', 'sale'),
+                ('amount', '=', tax),
+                ('amount_type', '=', 'percent')
+            ], limit=1)
         line = {
             'product_id': self.backend_record.default_gift_product_id.id,
             'price_unit': amount,
             'name': name,
             'product_uom_qty': 1,
+            'tax_id': [(4, tax_id)] if tax_id else None,
         }
         values['order_line'].append((0, 0, line))
         return values
@@ -414,7 +428,7 @@ class SaleOrderImporter(Component):
 
     def _create(self, data):
         binding = super(SaleOrderImporter, self)._create(data)
-        if binding.fiscal_position_id:
+        if binding.fiscal_position_id and not binding.odoo_id.tax_id:
             binding.odoo_id._compute_tax_id()
         return binding
 
