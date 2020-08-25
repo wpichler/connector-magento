@@ -30,6 +30,12 @@ class ProductMediaExporter(Component):
         new_id = self.backend_adapter.create(data, self.binding)
         self.external_id = new_id
 
+    def _has_to_skip(self):
+        if not self.binding.magento_product_id.image and not self.binding.magento_product_tmpl_id.image:
+            return True
+        else:
+            return False
+
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
