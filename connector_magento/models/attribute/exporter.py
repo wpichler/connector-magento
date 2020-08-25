@@ -136,9 +136,9 @@ class ProductAttributeExportMapper(Component):
         for mvalue in record.magento_attribute_value_ids:
             map_record = mvalue_mapper.map_record(mvalue, parent=record)
             mids.append(mvalue.odoo_id.id)
-            mapped.append(list(map_record.values()))
+            mapped.append(map_record.values())
         if self.backend_record.export_all_options:
             for value in record.value_ids.filtered(lambda v: v.id not in mids):
                 map_record = value_mapper.map_record(value, parent=record)
-                mapped.append(list(map_record.values()))
+                mapped.append(map_record.values())
         return {'options': mapped}
