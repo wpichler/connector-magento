@@ -199,6 +199,8 @@ class ProductProductExporter(Component):
         def sort_by_position(elem):
             return elem.position
 
+        if not self.binding.odoo_id.image:
+            return
         # We do export the base image on position 0
         mbinding = None
         for media_binding in sorted(self.binding.magento_image_bind_ids.filtered(lambda m: m.type == 'product_image'), key=sort_by_position):
