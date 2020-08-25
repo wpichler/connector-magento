@@ -35,7 +35,7 @@ class MagentoProductAttributeValueExportMapper(Component):
 
     @mapping
     def sort_order(self, record):
-        return {'sort_order': record.sequence if record.sequence else 0}
+        return {'sort_order': record.odoo_id.sequence if record.odoo_id.sequence else 0}
 
 
 class ProductAttributeValueExportMapper(Component):
