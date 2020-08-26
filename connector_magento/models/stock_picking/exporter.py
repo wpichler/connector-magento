@@ -90,14 +90,17 @@ class MagentoPickingExporter(Component):
                     'order_item_id': key,
                     'qty': val,
                 } for key, val in lines_info.items()],
-                'tracks': [
-                    {
-                        "track_number": picking.carrier_tracking_ref,
-                        "title": picking.carrier_id.name if picking.carrier_id else 'Custom',
-                        "carrier_code": "custom"
-                    }
-                ]
             }
+            if picking.carrier_id and picking.carrier_id.magento_export_tracking and  picking.carrier_tracking_ref:
+                arguments.update({
+                    'tracks': [
+                        {
+                            "track_number": picking.carrier_tracking_ref,
+                            "title": picking.carrier_id.name if picking.carrier_id else 'Custom',
+                            "carrier_code": "custom"
+                        }
+                    ]
+                })
             magento_id = self.backend_adapter._call(
                 'order/%s/ship' % picking.sale_id.magento_bind_ids[0].external_id,
                 arguments, http_method='post')
