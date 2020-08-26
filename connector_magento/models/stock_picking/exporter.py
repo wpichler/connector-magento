@@ -85,7 +85,7 @@ class MagentoPickingExporter(Component):
                                     'contain lines from the original '
                                     'sale order.'))
             arguments = {
-                'notify': True,
+                'notify': True if picking.carrier_id and picking.carrier_id.magento_export_tracking and  picking.carrier_tracking_ref else False,
                 'items': [{
                     'order_item_id': key,
                     'qty': val,
