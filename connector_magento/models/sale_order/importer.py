@@ -428,8 +428,11 @@ class SaleOrderImporter(Component):
 
     def _create(self, data):
         binding = super(SaleOrderImporter, self)._create(data)
+        # Do recompute tax id on lines without tax_id
         if binding.fiscal_position_id and not binding.odoo_id.tax_id:
-            binding.odoo_id._compute_tax_id()
+            for line in binding.odoo_id.order_line:
+                if not line.tax_id:
+                    line._compute_tax_id()
         return binding
 
     def _link_messages(self, binding):
