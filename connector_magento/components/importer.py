@@ -150,7 +150,7 @@ class MagentoImporter(AbstractComponent):
         """ Create the OpenERP record """
         # special check on data before import
         self._validate_data(data)
-        model = self.model.sudo().with_context(connector_no_export=True)
+        model = self.model.sudo().with_context(connector_no_export=True, lang=self.backend_record.default_lang_id.code if self.backend_record.default_lang_id else None)
         binding = model.create(data)
         _logger.debug('%d created from magento %s', binding, self.external_id)
         return binding
@@ -162,7 +162,7 @@ class MagentoImporter(AbstractComponent):
         """ Update an OpenERP record """
         # special check on data before import
         self._validate_data(data)
-        binding.sudo().with_context(connector_no_export=True).write(data)
+        binding.sudo().with_context(connector_no_export=True, lang=self.backend_record.default_lang_id.code if self.backend_record.default_lang_id else None).write(data)
         _logger.debug('%d updated from magento %s', binding, self.external_id)
         return
 

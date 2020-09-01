@@ -13,6 +13,7 @@ from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError, InvalidDataError
 from ...components.mapper import normalize_datetime
+import html2text
 
 _logger = logging.getLogger(__name__)
 
@@ -55,7 +56,6 @@ class ProductImportMapper(Component):
     _apply_on = ['magento.product.product']
 
     direct = [('price', 'magento_price'),
-              ('description', 'description'),
               ('weight', 'weight'),
               ('short_description', 'description_sale'),
               ('url_key', 'magento_url_key'),
@@ -65,6 +65,13 @@ class ProductImportMapper(Component):
               (normalize_datetime('created_at'), 'created_at'),
               (normalize_datetime('updated_at'), 'updated_at'),
               ]
+
+    @mapping
+    def description(self, record):
+        if 'description' in record:
+            return {
+                'description': html2text.html2text(record['description']),
+            }
 
     @mapping
     def default_code_on_create(self, record):
