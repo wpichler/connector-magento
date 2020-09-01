@@ -8,6 +8,7 @@ import odoo
 from odoo import _
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.exception import NothingToDoJob
+from odoo.addons.queue_job.job import identity_exact
 
 _logger = logging.getLogger(__name__)
 
@@ -66,6 +67,14 @@ class MagentoPickingExporter(Component):
         magento_shop = binding.sale_id.magento_bind_ids[0].store_id
         return magento_shop.send_picking_done_mail
 
+    def _update_picking_quantities(self, picking):
+        for line in picking.move_lines:
+            binding = line.product_id.magento_bind_ids.filtered(lambda mb: mb.backend_id == self.backend_record)
+            if not binding:
+                continue
+            for stock_item in binding.magento_stock_item_ids:
+                stock_item.export_record(stock_item.backend_id)
+
     def run(self, binding):
         """
         Export the picking to Magento
@@ -76,6 +85,7 @@ class MagentoPickingExporter(Component):
             """
             #FIX https://preprod.unamourdetapis.odoo.mind-and-go.net/web#id=28639&view_type=form&model=queue.job&menu_id=110&action=145
             picking = self.model.browse(binding.id)
+            self._update_picking_quantities(picking)
             _logger.debug("Picking and binding %s / %s" % (picking, binding))
             if picking.external_id:
                 return _('Already exported')
@@ -105,6 +115,7 @@ class MagentoPickingExporter(Component):
                 'order/%s/ship' % picking.sale_id.magento_bind_ids[0].external_id,
                 arguments, http_method='post')
             self.binder.bind(magento_id, binding)
+            self._update_picking_quantities(picking)
         else:
             if binding.external_id:
                 return _('Already exported')
