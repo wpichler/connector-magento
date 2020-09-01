@@ -24,15 +24,11 @@ class MagentoStockMoveListener(Component):
     _apply_on = ['stock.move']
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
-    def on_picking_out_done(self, record, picking_method):
-        for binding in record.product_id.magento_bind_ids:
-            for stock_item in binding.magento_stock_item_ids:
-                if stock_item.should_export:
-                    stock_item.with_delay(identity_key=identity_exact, priority=5).export_record(stock_item.backend_id)
-
-    @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
+        if not record.state == 'done':
+            return
         for binding in record.product_id.magento_bind_ids:
             for stock_item in binding.magento_stock_item_ids:
+                stock_item._compute_qty()
                 if stock_item.should_export:
                     stock_item.with_delay(identity_key=identity_exact, priority=5).export_record(stock_item.backend_id)
