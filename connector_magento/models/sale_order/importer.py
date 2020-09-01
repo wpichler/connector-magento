@@ -230,9 +230,7 @@ class SaleOrderImportMapper(Component):
         onchange = self.component(
             usage='ecommerce.onchange.manager.sale.order'
         )
-        _logger.info("Order before onchange play: %s", values)
         order = onchange.play(values, values['magento_order_line_ids'])
-        _logger.info("Order after onchange play: %s", order)
         return order
 
     @mapping
