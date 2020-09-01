@@ -41,6 +41,7 @@ class ProductTemplateExportMapper(Component):
     _inherit = 'magento.product.template.export.mapper'
 
     def category_ids(self, record):
+        _logger.info("Product categories: %s", record.public_categ_ids)
         c_ids = []
         for c in record.public_categ_ids:
             c_ids.extend([bind.external_id for bind in c.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)])

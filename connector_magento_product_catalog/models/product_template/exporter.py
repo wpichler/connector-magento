@@ -70,6 +70,9 @@ class ProductTemplateDefinitionExporter(Component):
         importer.run(data, force=True, binding=self.binding)
         self.external_id = data['sku']
 
+    def _update_binding_record_after_write(self, data):
+        _logger.info("Got result data: %s", data)
+
     def _export_variants(self):
         record = self.binding
         variant_exporter = self.component(usage='record.exporter', model_name='magento.product.product')
