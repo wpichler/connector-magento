@@ -19,6 +19,15 @@ class MagentoProductCategory(models.Model):
                                       ondelete='cascade')
 
     @api.multi
+    def write(self, vals):
+        result = super(MagentoProductCategory, self).write(vals)
+        if 'magento_parent_id' in vals:
+            # Do Update the public_categ_id parent also here
+            for mpc in self:
+                if mpc.magento_parent_id and mpc.magento_parent_id.public_categ_id:
+                    _logger.info("Do update public category parent id here")
+                    mpc.public_categ_id.parent_id = mpc.magento_parent_id.public_categ_id.id
+    @api.multi
     def update_products(self):
         '''
         We do need to overwrite this here complete

@@ -93,10 +93,39 @@ class ProductCategoryImporter(Component):
         self.backend_record.add_checkpoint(binding)
         return binding
 
+    def _import_categorie_product_positions(self, binding):
+        product_links = self.backend_adapter.get_assigned_product(self.external_id)
+        _logger.info("Got product links: %s", product_links)
+        # [{'sku': 'loden-bezugsstoff-bergen', 'position': 0, 'category_id': '90'}]
+        binder = self.binder_for('magento.product.template')
+        for category_link in product_links:
+            template = binder.to_internal(category_link['sku'], unwrap=True)
+            if not template:
+                _logger.info("Product Template with SKU %s is still missing.", category_link['sku'])
+                continue
+            # Search for position
+            position = self.env['magento.product.position'].search([
+                ('magento_product_category_id.backend_id', '=', self.backend_record.id),
+                ('product_template_id', '=', template.id),
+                ('magento_product_category_id', '=', binding.id),
+            ])
+            if not position:
+                _logger.info("Do create new position entrie")
+                self.env['magento.product.position'].create({
+                    'product_template_id': template.id,
+                    'magento_product_category_id': binding.id,
+                    'position': category_link['position'],
+                })
+            else:
+                position.update({
+                    'position': category_link['position'],
+                })
+
     def _after_import(self, binding):
         """ Hook called at the end of the import """
         translation_importer = self.component(usage='translation.importer')
         translation_importer.run(self.external_id, binding)
+        self._import_categorie_product_positions(binding)
 
 
 class ProductCategoryImportMapper(Component):
@@ -150,4 +179,4 @@ class ProductCategoryImportMapper(Component):
                                "magento id %s is not imported." %
                                record['parent_id'])
         parent = parent_binding.odoo_id
-        return {'parent_id': parent.id, 'magento_parent_id': parent_binding.id}
+        return {'parent_id': parent.id if parent else None, 'magento_parent_id': parent_binding.id}

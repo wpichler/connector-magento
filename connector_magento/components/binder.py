@@ -5,6 +5,9 @@
 
 from odoo.addons.component.core import Component
 from odoo import tools
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MagentoModelBinder(Component):
@@ -73,6 +76,8 @@ class MagentoModelBinder(Component):
             if unwrap:
                 return self.model.browse()[self._odoo_field]
             return self.model.browse()
+        if len(bindings) > 1:
+            _logger.error("Got %s bindings for %s with value %s", len(bindings), external_field, external_id)
         bindings.ensure_one()
         if unwrap:
             bindings = bindings[self._odoo_field]

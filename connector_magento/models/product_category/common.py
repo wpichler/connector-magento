@@ -220,7 +220,7 @@ class ProductCategoryAdapter(Component):
 
     def get_assigned_product(self, categ_id):
         if self.work.magento_api._location.version == '2.0':
-            raise NotImplementedError  # TODO
+            return self._call('%s/%s/products' % (self._magento2_model, categ_id), None)
         return self._call('%s.assignedProducts' % self._magento_model,
                           [categ_id])
 

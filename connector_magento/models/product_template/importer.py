@@ -99,10 +99,43 @@ class ProductTemplateImporter(Component):
         if binding.price == 0:
             binding.with_context(connector_no_export=True).price = price
 
+    def _import_category_positions(self, binding):
+        record = self.magento_record
+        binder = self.binder_for('magento.product.category')
+        if not 'category_links' in record['extension_attributes']:
+            return
+        category_links = record['extension_attributes']['category_links']
+        _logger.info("Links: %s", category_links)
+        for category_link in category_links:
+            cat = binder.to_internal(category_link['category_id'], unwrap=False)
+            if not cat:
+                raise MappingError("The product category with "
+                                   "magento id %s is not imported." %
+                                   category_link['category_id'])
+            # Search for position
+            position = self.env['magento.product.position'].search([
+                ('magento_product_category_id.backend_id', '=', self.backend_record.id),
+                ('product_template_id', '=', binding.odoo_id.id),
+                ('magento_product_category_id', '=', cat.id),
+            ])
+            if not position:
+                _logger.info("Do create new position entrie")
+                self.env['magento.product.position'].create({
+                    'product_template_id': binding.odoo_id.id,
+                    'magento_product_category_id': cat.id,
+                    'position': category_link['position'],
+                })
+            else:
+                position.update({
+                    'position': category_link['position'],
+                })
+
     def _after_import(self, binding):
         def sort_by_position(elem):
             return elem.position
 
+        # Import Category positions
+        self._import_category_positions(binding)
         # Import Images
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
         for media in self.magento_record['media_gallery_entries']:
@@ -193,7 +226,6 @@ class ProductTemplateImporter(Component):
             self.backend_record.add_checkpoint(binding)
 
     def _import_category_dependencies(self):
-        _logger.info("We do import the category dep here")
         record = self.magento_record
         if not 'category_links' in record['extension_attributes']:
             return
@@ -201,7 +233,7 @@ class ProductTemplateImporter(Component):
         _logger.info("cat links: %s", category_links)
         binder = self.binder_for('magento.product.category')
         for category_link in category_links:
-            cat = binder.to_internal(category_link['category_id'], unwrap=True)
+            cat = binder.to_internal(category_link['category_id'], unwrap=False)
             if not cat:
                 _logger.info("import cat link: %s", category_link)
                 self._import_dependency(category_link['category_id'], 'magento.product.category')
@@ -289,6 +321,7 @@ class ProductTemplateImportMapper(Component):
         if not 'category_links' in record['extension_attributes']:
             return
         category_links = record['extension_attributes']['category_links']
+        _logger.info("Links: %s", category_links)
         binder = self.binder_for('magento.product.category')
         category_ids = []
         main_categ_id = None

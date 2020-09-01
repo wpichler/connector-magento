@@ -349,6 +349,9 @@ class MagentoExporter(AbstractComponent):
     def _update_binding_record_after_create(self, data):
         self.external_id = data
 
+    def _update_binding_record_after_write(self, data):
+        pass
+
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
@@ -372,7 +375,9 @@ class MagentoExporter(AbstractComponent):
             record = self._update_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
-            self._update(record)
+            data = self._update(record)
+            if data:
+                self._update_binding_record_after_write(data)
         else:
             record = self._create_data(map_record, fields=fields)
             if not record:
