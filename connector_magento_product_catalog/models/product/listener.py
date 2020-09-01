@@ -36,7 +36,7 @@ class MagentoProductProductExportListener(Component):
     def on_record_write(self, record, fields=None):
         if 'image' in fields:
             # We do ignore image field
-            del fields['image']
+            fields.remove('image')
         for binding in record.magento_bind_ids:
             binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
 
