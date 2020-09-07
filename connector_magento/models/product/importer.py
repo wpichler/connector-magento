@@ -289,7 +289,7 @@ class ProductImporter(Component):
             binding = self.env['magento.stock.warehouse'].create({
                 'backend_id': self.backend_record.id,
                 'external_id': stock_item['stock_id'],
-                'odoo_id': self.env['stock.warehouse'].search([('company_id', '=', self.backend_record.company_id.id)], limit=1).id,
+                'odoo_id': self.backend_record.warehouse_id.id,
             })
             self.backend_record.add_checkpoint(binding)
 

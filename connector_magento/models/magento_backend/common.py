@@ -253,6 +253,12 @@ class MagentoBackend(models.Model):
         comodel_name='account.account',
         string='Rounding Diff Account'
     )
+    rounding_diff_product_id = fields.Many2one(
+        comodel_name='product.product',
+        string='Rounding Diff Product',
+        help="If set, then this product will get added to sale orders if there"
+        "is a rounding difference <= 0.02 on the order.",
+    )
     is_multi_company = fields.Boolean(
         string='Is Backend Multi-Company',
         help="If this flag is set, it is possible to choose warehouse at each "

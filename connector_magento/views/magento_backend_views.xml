@@ -497,6 +497,7 @@
 										groups="sale.group_analytic_accounting" />
 									<field name="fiscal_position_id" />
 									<field name="rounding_diff_account_id"/>
+									<field name="rounding_diff_product_id"/>
 									<field name="is_multi_company" />
                                     <field name="pricelist_id"/>
                                     <field name="default_cod_product_id"/>

@@ -450,10 +450,25 @@ class SaleOrderImporter(Component):
                                       model_name='magento.account.payment')
             importer.run_with_data(payment, order_binding=binding)
 
+    def _check_rounding_problem(self, binding):
+        if abs(binding.amount_total - binding.total_amount) > 0.02:
+            return
+        if not binding.backend_id.rounding_diff_product_id:
+            _logger.info("There is a rounding difference, but not rounding difference product is set - so ignore it")
+            return
+        self.env['sale.order.line'].create({
+            'product_id': binding.backend_id.rounding_diff_product_id.id,
+            'product_uom_qty': -1 if binding.amount_total > binding.total_amount else 1,
+            'price_unit': abs(binding.amount_total - binding.total_amount),
+            'name': binding.backend_id.rounding_diff_product_id.name,
+            'order_id': binding.odoo_id.id,
+        })
+
     def _after_import(self, binding):
         self._link_parent_orders(binding)
         self._link_messages(binding)
         self._import_payment(binding)
+        self._check_rounding_problem(binding)
 
     def _get_storeview(self, record):
         """ Return the tax inclusion setting for the appropriate storeview """
