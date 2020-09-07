@@ -27,6 +27,8 @@ class MagentoProductCategory(models.Model):
                 if mpc.magento_parent_id and mpc.magento_parent_id.public_categ_id:
                     _logger.info("Do update public category parent id here")
                     mpc.public_categ_id.parent_id = mpc.magento_parent_id.public_categ_id.id
+        return result
+
     @api.multi
     def update_products(self):
         '''

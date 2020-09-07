@@ -182,4 +182,7 @@ class ProductCategoryImportMapper(Component):
                                "magento id %s is not imported." %
                                record['parent_id'])
         parent = parent_binding.odoo_id
-        return {'parent_id': parent.id if parent else None, 'magento_parent_id': parent_binding.id}
+        return {
+            'parent_id': parent.id if parent else None,
+            'magento_parent_id': parent_binding.id
+        }

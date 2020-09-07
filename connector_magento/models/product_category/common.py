@@ -65,6 +65,17 @@ class MagentoProductCategory(models.Model):
     )
 
     @api.multi
+    def write(self, vals):
+        result = super(MagentoProductCategory, self).write(vals)
+        if 'magento_parent_id' in vals:
+            # Do Update the categ_id parent also here
+            for mpc in self:
+                if mpc.magento_parent_id and mpc.magento_parent_id.odoo_id:
+                    _logger.info("Do update public category parent id here")
+                    mpc.odoo_id.parent_id = mpc.magento_parent_id.odoo_id.id
+        return result
+
+    @api.multi
     @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
