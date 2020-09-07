@@ -98,11 +98,15 @@ class ProductCategoryImporter(Component):
         _logger.info("Got product links: %s", product_links)
         # [{'sku': 'loden-bezugsstoff-bergen', 'position': 0, 'category_id': '90'}]
         binder = self.binder_for('magento.product.template')
+        pbinder = self.binder_for('magento.product.product')
         for category_link in product_links:
             template = binder.to_internal(category_link['sku'], unwrap=True)
             if not template:
-                _logger.info("Product Template with SKU %s is still missing.", category_link['sku'])
-                continue
+                product = pbinder.to_internal(category_link['sku'], unwrap=True)
+                if not product:
+                    _logger.info("Product Template or Product with SKU %s is still missing.", category_link['sku'])
+                    continue
+                template = product.product_tmpl_id
             # Search for position
             position = self.env['magento.product.position'].search([
                 ('magento_product_category_id.backend_id', '=', self.backend_record.id),
@@ -110,7 +114,6 @@ class ProductCategoryImporter(Component):
                 ('magento_product_category_id', '=', binding.id),
             ])
             if not position:
-                _logger.info("Do create new position entrie")
                 self.env['magento.product.position'].create({
                     'product_template_id': template.id,
                     'magento_product_category_id': binding.id,
