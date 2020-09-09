@@ -451,6 +451,8 @@ class SaleOrderImporter(Component):
             importer.run_with_data(payment, order_binding=binding)
 
     def _check_rounding_problem(self, binding):
+        if abs(binding.amount_total - binding.total_amount) == 0:
+            return
         if abs(binding.amount_total - binding.total_amount) > 0.02:
             return
         if not binding.backend_id.rounding_diff_product_id:
@@ -458,8 +460,8 @@ class SaleOrderImporter(Component):
             return
         self.env['sale.order.line'].create({
             'product_id': binding.backend_id.rounding_diff_product_id.id,
-            'product_uom_qty': -1 if binding.amount_total > binding.total_amount else 1,
-            'price_unit': abs(binding.amount_total - binding.total_amount),
+            'product_uom_qty': 1,
+            'price_unit': binding.amount_total - binding.total_amount,
             'name': binding.backend_id.rounding_diff_product_id.name,
             'order_id': binding.odoo_id.id,
         })
