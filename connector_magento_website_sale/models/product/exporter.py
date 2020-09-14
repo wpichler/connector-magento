@@ -32,11 +32,117 @@ class ProductProductExporter(Component):
                 })
                 categ_exporter.run(m_categ)
         return
-
+    """
+[
+  {
+    'id': 139519,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/9/3/93bead63-2530-48a8-bcbc-37339772e8f3_1.jpeg'
+  },
+  {
+    'id': 147882,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/p/o/po-mona-lech_1.jpeg'
+  },
+  {
+    'id': 148867,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/f/9/f965eef0-c53c-4d6c-a744-e8014babc72a_1.jpeg'
+  },
+  {
+    'id': 148868,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/c/2/c2538bce-3ab3-4f2b-ac7e-fab468cb4114.jpeg'
+  },
+  {
+    'id': 148869,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/f/4/f49a9c6f-3ff1-4ddd-8f02-979bcb979d35_1.jpeg'
+  },
+  {
+    'id': 148870,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 0,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/9/3/93bead63-2530-48a8-bcbc-37339772e8f3_3.jpeg'
+  },
+  {
+    'id': 148879,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 1,
+    'disabled': False,
+    'types': [
+      'image',
+      'small_image',
+      'thumbnail'
+    ],
+    'file': '/p/o/po-mona-lech-23_1.jpeg'
+  },
+  {
+    'id': 148845,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 10,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/5/4/5489dfb3-45e3-4af2-8278-e9b337308ad1.jpeg'
+  },
+  {
+    'id': 148846,
+    'media_type': 'image',
+    'label': 'PO-Mona Lech',
+    'position': 10,
+    'disabled': False,
+    'types': [
+      
+    ],
+    'file': '/f/e/fe5751c5-620e-415b-b1ba-c437e5da83d4_1.jpeg'
+  }
+]    
+    """
     def _export_images(self):
         """ Export the product.image's associated with this product """
+        magento_media = self.backend_adapter.get_media(self.external_id)
+        _logger.info("Got Magento Media: %s", magento_media)
         mime = magic.Magic(mime=True)
-        for image in self.binding.product_image_ids:
+        for image in self.binding.product_image_ids.filtered(lambda i: i.image):
             magento_image = image.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == self.binding.backend_id.id)
             if not magento_image:
                 mimetype = mime.from_buffer(base64.b64decode(image.image))

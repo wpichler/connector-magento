@@ -14,6 +14,8 @@ class ProductMediaExportMapper(Component):
     def get_content(self, record):
         if not record.type == 'product_image_ids':
             return super(ProductMediaExportMapper, self).get_content(record)
+        if not record.odoo_id.image:
+            raise Exception('Missing image content on image %s on product %s, template: %s', record.odoo_id, record.magento_product_id, record.magento_product_tmpl_id)
         return {'content': {
             'base64_encoded_data': record.odoo_id.image.decode('ascii'),
             'type': record.mimetype,

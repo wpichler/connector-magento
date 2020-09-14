@@ -19,15 +19,16 @@ class MagentoProductMediaBindingExportListener(Component):
     def on_record_write(self, record, fields=None):
         record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
 
-    '''
-    TODO: TBD
     def on_record_unlink(self, record):
         with record.backend_id.work_on(record._name) as work:
             external_id = work.component(usage='binder').to_external(record)
             if external_id:
-                record.with_delay(identity_key=identity_exact).export_delete_record(record.backend_id,
-                                                         external_id)
-    '''
+                record.with_delay(identity_key=identity_exact).export_delete_record(
+                    record.backend_id,
+                    (external_id,
+                    record.magento_product_id.external_id if record.magento_product_id else record.magento_product_tmpl_id.external_id, )
+                )
+
 
 class MagentoProductMediaExportListener(Component):
     _name = 'magento.product.media.export.listener'

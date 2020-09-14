@@ -43,6 +43,4 @@ class ProductMediaAdapter(Component):
             if isinstance(term, str):
                 return urllib.parse.quote(term.encode('utf-8'), safe='')
             return term
-
-        pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
-        return 'products/%s/media/%s' % (escape(pbinding.external_id), id)
+        return 'products/%s/media/%s' % (id[1], id[0])

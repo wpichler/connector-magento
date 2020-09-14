@@ -74,3 +74,7 @@ class ProductProductAdapter(Component):
                     "prices": res
                 }, http_method="post")
             return res
+
+    def get_media(self, sku):
+        if self.work.magento_api._location.version == '2.0':
+            return self._call('products/%s/media' % sku, http_method="get")

@@ -110,7 +110,7 @@ class MagentoBaseExporter(AbstractComponent):
             self.env.cr.commit()  # noqa
 
         self._after_export()
-        binding.with_context(connector_no_export=True).write({
+        binding.sudo().with_context(connector_no_export=True).write({
             'magento_last_error_string': None,
             'magento_last_error_timestamp': None,
         })
