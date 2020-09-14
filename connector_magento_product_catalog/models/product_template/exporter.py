@@ -184,11 +184,9 @@ class ProductTemplateExportMapper(Component):
     def get_extension_attributes(self, record):
         data = {}
         data.update(self.get_website_ids(record))
-        #data.update(self.category_ids(record))
         data.update(self.configurable_product_options(record))
         data.update(self.configurable_product_links(record))
         return {'extension_attributes': data}
-
 
     def configurable_product_links(self, record):
         links = []
@@ -221,15 +219,16 @@ class ProductTemplateExportMapper(Component):
             for v in l.value_ids:
                 v_ids = v.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
                 for v_id in v_ids: 
-                    opt['values'].append({ "value_index": v_id.external_id.split('_')[1]})
+                    opt['values'].append({"value_index": v_id.external_id.split('_')[1]})
                 
             option_ids.append(opt)
         return {'configurable_product_options': option_ids}
 
     def get_website_ids(self, record):
-        website_ids = [
-                s.external_id for s in record.website_ids
-                ]
+        if record.website_ids:
+            website_ids = [s.external_id for s in record.website_ids]
+        else:
+            website_ids = [s.external_id for s in record.backend_id.website_ids]
         return {'website_ids': website_ids}
 
     def category_ids(self, record):

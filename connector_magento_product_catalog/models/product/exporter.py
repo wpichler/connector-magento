@@ -285,34 +285,16 @@ class ProductProductExportMapper(Component):
     @mapping
     def get_extension_attributes(self, record):
         data = {}
-        storeview_id = self.work.storeview_id if hasattr(self.work, 'storeview_id') else False
-        if not storeview_id:
-            data.update(self.get_website_ids(record))
-            #data.update(self.category_ids(record))
+        data.update(self.get_website_ids(record))
         return {'extension_attributes': data}
     
     def get_website_ids(self, record):
-        website_ids = [s.external_id for s in record.website_ids]
+        if record.website_ids:
+            website_ids = [s.external_id for s in record.website_ids]
+        else:
+            website_ids = [s.external_id for s in record.backend_id.website_ids]
         return {'website_ids': website_ids}
     
-    '''
-    def category_ids(self, record):
-        magento_categ_id = record.categ_id.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
-        categ_vals = [{
-            "position": 0,
-            "category_id": magento_categ_id.external_id,
-        }]
-        i = 1
-        for c in record.categ_ids:
-            for b in c.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id):
-                categ_vals.append({
-                    "position": i,
-                    "category_id": b.external_id,
-                })
-                i += 1
-        return {'category_links': categ_vals}
-    '''
-
     def category_ids(self, record):
         magento_categ_id = record.categ_id.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
         c_ids = []
