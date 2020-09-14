@@ -12,6 +12,8 @@ from odoo.addons.connector.components.mapper import mapping
 from odoo.addons.queue_job.exception import NothingToDoJob, FailedJobError
 from ...components.mapper import normalize_datetime
 from ...exception import OrderImportRuleRetry
+from odoo.tools import float_compare
+
 
 _logger = logging.getLogger(__name__)
 
@@ -451,7 +453,7 @@ class SaleOrderImporter(Component):
             importer.run_with_data(payment, order_binding=binding)
 
     def _check_rounding_problem(self, binding):
-        if abs(binding.amount_total - binding.total_amount) == 0:
+        if float_compare(binding.amount_total, binding.total_amount, precision_rounding=2) == 0:
             return
         if abs(binding.amount_total - binding.total_amount) > 0.02:
             return
