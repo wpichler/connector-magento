@@ -22,9 +22,9 @@ class ProductMediaExporter(Component):
     def _update(self, data, storeview_code=None):
         """ Update an Magento record """
         assert self.external_id
-        # We have to delete a recreate because of a bug in magento 2
+        # We have to delete and recreate because of a bug in magento 2
         try:
-            self.backend_adapter.delete(self.binding.external_id, self.binding)
+            self.backend_adapter.delete((self.binding.external_id, self.binding.magento_product_id.external_id if self.binding.magento_product_id else self.binding.magento_product_tmpl_id.external_id, ))
         except:
             _logger.info("Got error on delete old media - ignore it")
         new_id = self.backend_adapter.create(data, self.binding)

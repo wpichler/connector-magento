@@ -15,6 +15,7 @@
  'data': [
      'views/product_category_views.xml',
      'views/product_views.xml',
+     'views/product_media.xml',
  ],
  'installable': True,
  'auto_install': True,

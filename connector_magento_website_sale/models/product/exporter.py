@@ -141,8 +141,14 @@ class ProductProductExporter(Component):
         """ Export the product.image's associated with this product """
         magento_media = self.backend_adapter.get_media(self.external_id)
         _logger.info("Got Magento Media: %s", magento_media)
+        # First check if the bindings still belong to a real image
+        for ibinding in self.binding.magento_image_bind_ids:
+            if ibinding.type == 'product_image_ids' and (not ibinding.odoo_id or not ibinding.odoo_id.image or ibinding.odoo_id.id not in self.binding.product_variant_image_ids.ids):
+                _logger.info("Do delete image %s", ibinding)
+                ibinding.unlink()
         mime = magic.Magic(mime=True)
-        for image in self.binding.product_image_ids.filtered(lambda i: i.image):
+        _logger.info("Do create images: %s", self.binding.product_variant_image_ids)
+        for image in self.binding.product_variant_image_ids.filtered(lambda i: i.image):
             magento_image = image.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == self.binding.backend_id.id)
             if not magento_image:
                 mimetype = mime.from_buffer(base64.b64decode(image.image))

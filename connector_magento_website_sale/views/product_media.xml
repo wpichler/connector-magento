@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!-- Inherit Form View to Modify it -->
+	<record id="view_magento_product_media_form" model="ir.ui.view">
+		<field name="name">magento.product.media.form</field>
+		<field name="model">magento.product.media</field>
+	    <field name="inherit_id" ref="connector_magento.view_magento_product_media_form"/>
+	    <field name="arch" type="xml">
+
+	        <xpath expr="//field[@name='magento_product_id']" position="before">
+	            <field name="odoo_id"/>
+	        </xpath>
+
+	    </field>
+	</record>
+
+</odoo>
