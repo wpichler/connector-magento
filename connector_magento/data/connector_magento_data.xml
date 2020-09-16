@@ -71,11 +71,23 @@
             <field eval="False" name="active"/>
             <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
+            <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
             <field eval="False" name="doall"/>
             <field name="model_id" ref="model_magento_backend"/>
             <field name="code">model._scheduler_update_product_stock_qty()</field>
+        </record>
+
+        <record model="ir.cron" id="ir_cron_update_product_prices" forcecreate="True">
+            <field name="name">Magento -  Update Prices</field>
+            <field eval="False" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field eval="False" name="doall"/>
+            <field name="model_id" ref="model_magento_backend"/>
+            <field name="code">model._scheduler_update_product_prices()</field>
         </record>
 
         <record id="excep_wrong_total_amount" model="exception.rule">

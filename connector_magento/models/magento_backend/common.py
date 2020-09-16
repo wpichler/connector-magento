@@ -601,6 +601,10 @@ class MagentoBackend(models.Model):
     def _scheduler_update_product_stock_qty(self, domain=None):
         self._magento_backend('update_product_stock_qty', domain=domain)
 
+    @api.model
+    def _scheduler_update_product_prices(self, domain=None):
+        self._magento_backend('update_product_prices', domain=domain)
+
 
 class MagentoConfigSpecializer(models.AbstractModel):
     _name = 'magento.config.specializer'
