@@ -5,6 +5,9 @@
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping
 import os.path
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductMediaExportMapper(Component):
@@ -12,6 +15,7 @@ class ProductMediaExportMapper(Component):
 
     @mapping
     def get_content(self, record):
+        _logger.info("Type: ", record.type)
         if not record.type == 'product_image_ids':
             return super(ProductMediaExportMapper, self).get_content(record)
         if not record.odoo_id.image:

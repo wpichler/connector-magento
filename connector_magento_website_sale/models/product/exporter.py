@@ -139,8 +139,8 @@ class ProductProductExporter(Component):
     """
     def _export_images(self):
         """ Export the product.image's associated with this product """
-        magento_media = self.backend_adapter.get_media(self.external_id)
-        _logger.info("Got Magento Media: %s", magento_media)
+        #magento_media = self.backend_adapter.get_media(self.external_id)
+        #_logger.info("Got Magento Media: %s", magento_media)
         # First check if the bindings still belong to a real image
         for ibinding in self.binding.magento_image_bind_ids:
             if ibinding.type == 'product_image_ids' and (not ibinding.odoo_id or not ibinding.odoo_id.image or ibinding.odoo_id.id not in self.binding.product_variant_image_ids.ids):
@@ -149,10 +149,20 @@ class ProductProductExporter(Component):
         mime = magic.Magic(mime=True)
         _logger.info("Do create images: %s", self.binding.product_variant_image_ids)
         for image in self.binding.product_variant_image_ids.filtered(lambda i: i.image):
+            mimetype = mime.from_buffer(base64.b64decode(image.image))
+            extension = 'png' if mimetype == 'image/png' else 'jpeg'
+            # Find unique filename
+            filename = "%s.%s" % (slugify(image.name, to_lower=True), extension)
+            i = 0
+            while self.env['magento.product.media'].search_count([
+                ('backend_id', '=', self.binding.backend_id.id),
+                ('file', '=', filename)
+            ]) > 0:
+                filename = "%s-%s.%s" % (slugify(self.binding.odoo_id.name, to_lower=True), i, extension)
+                i += 1
+
             magento_image = image.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == self.binding.backend_id.id)
             if not magento_image:
-                mimetype = mime.from_buffer(base64.b64decode(image.image))
-                extension = 'png' if mimetype == 'image/png' else 'jpeg'
                 # We need to export the category first
                 if 'magento.product.template' in self._apply_on:
                     model_key = 'magento_product_tmpl_id'
@@ -160,7 +170,7 @@ class ProductProductExporter(Component):
                     model_key = 'magento_product_id'
                 self._export_dependency(image, "magento.product.media", binding_extra_vals={
                     'product_image_id': image.id,
-                    'file': "%s.%s" % (slugify(image.name, to_lower=True), extension),
+                    'file': filename,
                     'label': image.name,
                     model_key: self.binding.id,
                     'mimetype': mimetype,
@@ -170,6 +180,11 @@ class ProductProductExporter(Component):
                     'image_type_thumbnail': False,
                 })
             else:
+                magento_image.with_context(no_connector_export=True).update({
+                    'mimetype': mimetype,
+                    'file': filename,
+                    'label': image.name,
+                })
                 exporter = self.component(usage='record.exporter',
                                           model_name='magento.product.media')
                 exporter.run(magento_image)
@@ -178,7 +193,8 @@ class ProductProductExporter(Component):
     def _after_export(self):
         """ Export the dependencies for the record"""
         super(ProductProductExporter, self)._after_export()
-        self._export_images()
+        if 'magento.product.product' in self._apply_on:
+            self._export_images()
         return
 
 

@@ -5,6 +5,9 @@
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class MagentoStockItemExporter(Component):
@@ -17,6 +20,13 @@ class MagentoStockItemExporter(Component):
 
     def _after_export(self):
         self.binding.with_context(connector_no_export=True).qty = self.binding.calculated_qty
+
+    def run(self, binding):
+        pbinding = binding.magento_product_binding_id or binding.magento_product_template_binding_id
+        if not pbinding or pbinding.magento_status == '2' or not pbinding.active:
+            _logger.info("Product is not active anymore - so no need to export here")
+            return
+        return super(MagentoStockItemExporter, self).run(binding)
 
 
 class MagentoStockItemExportMapper(Component):

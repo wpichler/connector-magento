@@ -9,24 +9,36 @@
 				<header>
 				</header>
 				<sheet>
+					<field name="p_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': ['|',('magento_product_id', '=', False),('type', '!=', 'product_image')]}"/>
+					<field name="pt_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': ['|',('magento_product_tmpl_id', '=', False),('type', '!=', 'product_image')]}"/>
+					<div class="oe_title">
+						<h1>
+							<field name="label" readonly="1"/>
+						</h1>
+					</div>
+					<div class="oe_button_box" name="button_box">
 
-					<group name="general">
-						<field name="magento_product_id" readonyl="1"/>
-						<field name="magento_product_tmpl_id" readonyl="1"/>
-						<field name="external_id"  readonyl="1"/>
-						<field name="backend_id"  readonyl="1"/>
-						<field name="label"/>
-						<field name="file"  readonyl="1"/>
-						<field name="url" widget="url"/>
-						<field name="position" />
-						<field name="disabled"/>
-						<field name="mimetype"/>
-						<field name="type"/>
-						<field name="media_type"/>
-						<field name="image_type_image"/>
-						<field name="image_type_small_image"/>
-						<field name="image_type_thumbnail"/>
-						<field name="image_type_swatch"/>
+					</div>
+					<group>
+						<group name="magento" string="Magento">
+							<field name="external_id"  readonly="1"/>
+							<field name="file"  readonly="1"/>
+							<field name="url" widget="url"/>
+							<field name="position" />
+							<field name="disabled"/>
+							<field name="mimetype"/>
+							<field name="type"/>
+							<field name="media_type"/>
+							<field name="image_type_image"/>
+							<field name="image_type_small_image"/>
+							<field name="image_type_thumbnail"/>
+							<field name="image_type_swatch"/>
+						</group>
+						<group name="general" string="Odoo">
+							<field name="magento_product_id" readonly="1" attrs="{'invisible': [('magento_product_id', '=', False)]}"/>
+							<field name="magento_product_tmpl_id" readonly="1" attrs="{'invisible': [('magento_product_tmpl_id', '=', False)]}"/>
+							<field name="backend_id"  readonly="1"/>
+						</group>
 					</group>
 					<div>
 						<img t-attf-src="#{ url }" t-attf-name="#{ label }" t-attf-alt="#{ label }"/>

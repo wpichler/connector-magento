@@ -23,7 +23,7 @@ class MagentoProductMedia(models.Model):
     @api.depends('backend_id', 'file')
     def _compute_url(self):
         for media in self:
-            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product%s" % media.file)
+            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product/%s" % media.file)
 
     @api.depends('url')
     def _get_image(self):
@@ -44,6 +44,8 @@ class MagentoProductMedia(models.Model):
                                               string='Magento Product Template',
                                               required=False,
                                               ondelete='cascade')
+    p_image = fields.Binary(related='magento_product_id.odoo_id.image')
+    pt_image = fields.Binary(related='magento_product_tmpl_id.odoo_id.image')
     label = fields.Char(string="Label")
     type = fields.Selection([
         ('product_image', 'Product Image'),

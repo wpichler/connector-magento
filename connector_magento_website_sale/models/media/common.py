@@ -16,6 +16,7 @@ class MagentoProductMedia(models.Model):
     _inherit = 'magento.product.media'
 
     odoo_id = fields.Many2one('product.image', string="Product Image")
+    image_image = fields.Binary(related='odoo_id.image')
 
 
 class ProductImage(models.Model):
