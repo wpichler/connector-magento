@@ -9,6 +9,8 @@ import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
 import base64
 import uuid
+from odoo.addons.queue_job.job import identity_exact
+from odoo.addons.queue_job.job import job, related_action
 
 
 _logger = logging.getLogger(__name__)
@@ -89,6 +91,20 @@ class MagentoProductMedia(models.Model):
             extension = 'png' if vals['mimetype']=='image/png' else 'jpeg'
             vals['file'] = "%s.%s" % (uuid.uuid4(), extension)
         return super(MagentoProductMedia, self).create(vals)
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def sync_from_magento(self):
+        for binding in self:
+            binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
+
+    @api.multi
+    @job(default_channel='root.magento')
+    def run_sync_from_magento(self):
+        self.ensure_one()
+        with self.backend_id.work_on(self._name) as work:
+            importer = work.component(usage='record.importer')
+            return importer.run(self.external_id, force=True)
 
 
 class ProductTemplate(models.Model):

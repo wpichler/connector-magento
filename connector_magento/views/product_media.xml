@@ -7,6 +7,8 @@
 		<field name="arch" type="xml">
 			<form string="Magento Product Media">
 				<header>
+					<button name="sync_to_magento" type="object" string="Force Sync Odoo -> Magento" />
+					<button type="object" name="run_sync_to_magento" string="Instead Force Sync Odoo -> Magento" groups="base.group_no_one"/>
 				</header>
 				<sheet>
 					<field name="p_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': ['|',('magento_product_id', '=', False),('type', '!=', 'product_image')]}"/>
@@ -83,6 +85,8 @@
 		<field name="arch" type="xml">
 			<tree default_order="position">
 				<field name="position" widget="handle"/>
+				<field name="p_image" style="height:40px;" widget="image" readonly="1" attrs="{'invisible': ['|',('magento_product_id', '=', False),('type', '!=', 'product_image')]}"/>
+				<field name="pt_image" style="height:40px;" widget="image" readonly="1" attrs="{'invisible': ['|',('magento_product_tmpl_id', '=', False),('type', '!=', 'product_image')]}"/>
 				<field name="magento_product_id" />
 				<field name="magento_product_tmpl_id" />
 				<field name="type"/>

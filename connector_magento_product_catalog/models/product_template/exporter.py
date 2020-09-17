@@ -190,11 +190,27 @@ class ProductTemplateExportMapper(Component):
 
     def configurable_product_links(self, record):
         links = []
+        pavalues = []
+        available_attribute_ids = []
+        att_lines = record.attribute_line_ids.filtered(lambda l: l.attribute_id.create_variant in ['always', 'dynamic'] and len(l.value_ids)>1 and len(
+            l.attribute_id.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)) > 0)
+        for l in att_lines:
+            available_attribute_ids.append(l.attribute_id.id)
         for p in record.product_variant_ids:
             mp = p.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
             if not mp.external_id:
                 continue
-            links.append(mp.magento_id)
+            # We do check to avoid variants with duplicates attribute sets
+            key = ""
+            for value in p.attribute_value_ids.filtered(lambda v: v.attribute_id.id in available_attribute_ids).sorted(lambda v: v.attribute_id.id):
+                binding_value_ids = value.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
+                binding_value = binding_value_ids[0] if binding_value_ids else None
+                if not binding_value:
+                    continue
+                key += "%s%s" % (value.attribute_id.id, value.name)
+            if key not in pavalues:
+                links.append(mp.magento_id)
+                pavalues.append(key)
         return {'configurable_product_links': links}
 
     def configurable_product_options(self, record):
