@@ -121,4 +121,14 @@
 		</field>
 	</record>
 
+	<record id="action_server_resync_product_product_from_magento" model="ir.actions.server">
+		<field name="name">Queue resync from Magento</field>
+		<field name="condition">True</field>
+		<field name="type">ir.actions.server</field>
+		<field name="model_id" ref="model_magento_product_product" />
+		<field name="binding_model_id" ref="model_magento_product_product"/>
+		<field name="state">code</field>
+		<field name="code">records.sync_from_magento()</field>
+	</record>
+
 </odoo>
