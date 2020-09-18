@@ -85,8 +85,6 @@
 		<field name="arch" type="xml">
 			<tree default_order="position">
 				<field name="position" widget="handle"/>
-				<field name="p_image" style="height:40px;" widget="image" readonly="1" attrs="{'invisible': ['|',('magento_product_id', '=', False),('type', '!=', 'product_image')]}"/>
-				<field name="pt_image" style="height:40px;" widget="image" readonly="1" attrs="{'invisible': ['|',('magento_product_tmpl_id', '=', False),('type', '!=', 'product_image')]}"/>
 				<field name="magento_product_id" />
 				<field name="magento_product_tmpl_id" />
 				<field name="type"/>

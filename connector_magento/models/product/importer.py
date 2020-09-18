@@ -413,12 +413,21 @@ class ProductImporter(Component):
         )
 
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
+        mids = []
         for media in self.magento_record['media_gallery_entries']:
             media_importer.run(media, binding)
+            mids.append(media['id'])
+        # Delete media bindings which are not available anymore
+        for media_binding in binding.magento_image_bind_ids.filtered(lambda m: int(m.external_id) not in mids):
+            media_binding.unlink()
         # Here do choose the image at the smallest position as the main image
-        for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image'), key=sort_by_position):
-            binding.with_context(connector_no_export=True).image = media_binding.image
+        for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image' and m.image_type_image), key=sort_by_position):
+            binding.odoo_id.with_context(connector_no_export=True).image = media_binding.image
             break
+        if not binding:
+            for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image'), key=sort_by_position):
+                binding.odoo_id.with_context(connector_no_export=True).image = media_binding.image
+                break
         if self.magento_record['type_id'] == 'bundle':
             bundle_importer = self.component(usage='product.bundle.importer')
             bundle_importer.run(binding, self.magento_record)

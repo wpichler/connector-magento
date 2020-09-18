@@ -9,6 +9,7 @@ import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
 import base64
 import uuid
+import requests
 from odoo.addons.queue_job.job import identity_exact
 from odoo.addons.queue_job.job import job, related_action
 
@@ -25,15 +26,15 @@ class MagentoProductMedia(models.Model):
     @api.depends('backend_id', 'file')
     def _compute_url(self):
         for media in self:
-            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product/%s" % media.file)
+            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product%s" % media.file)
 
     @api.depends('url')
     def _get_image(self):
         for media in self:
             try:
-                f = urllib.request.urlopen(media.url)
-                if f.code == 200:
-                    media.image = base64.b64encode(f.read())
+                f = requests.get(media.url)
+                if f.status_code == 200:
+                    media.image = base64.b64encode(f.content)
                 f.close()
             except Exception as e:
                 _logger.error("Got Exception %s while trying to fetch image on %s", e, media.url)

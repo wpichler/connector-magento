@@ -21,7 +21,15 @@ class MagentoStockItemExporter(Component):
     def _after_export(self):
         self.binding.with_context(connector_no_export=True).qty = self.binding.calculated_qty
 
-    def run(self, binding):
+    def run(self, binding, *args, **kwargs):
+        self.binding = binding.sudo()
+        self.external_id = self.binder.to_external(self.binding)
+        # Read current stock items for product here to be able to check if it still does exists
+        item = self.backend_adapter.read(self.external_id, binding=binding)
+        if not item or int(item['item_id']) != int(binding.external_id):
+            # Does not exists anymore - so delete it
+            binding.unlink()
+            return True
         pbinding = binding.magento_product_binding_id or binding.magento_product_template_binding_id
         if not pbinding or pbinding.magento_status == '2' or not pbinding.active:
             _logger.info("Product is not active anymore - so no need to export here")
