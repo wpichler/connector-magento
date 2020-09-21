@@ -152,13 +152,13 @@ class ProductProductExporter(Component):
             mimetype = mime.from_buffer(base64.b64decode(image.image))
             extension = 'png' if mimetype == 'image/png' else 'jpeg'
             # Find unique filename
-            filename = "%s.%s" % (slugify(image.name, to_lower=True), extension)
+            filename = "%s.%s" % (slugify(image.name or self.binding.odoo_id.name, to_lower=True), extension)
             i = 0
             while self.env['magento.product.media'].search_count([
                 ('backend_id', '=', self.binding.backend_id.id),
                 ('file', '=', filename)
             ]) > 0:
-                filename = "%s-%s.%s" % (slugify(self.binding.odoo_id.name, to_lower=True), i, extension)
+                filename = "%s-%s.%s" % (slugify(image.name or self.binding.odoo_id.name, to_lower=True), i, extension)
                 i += 1
 
             magento_image = image.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == self.binding.backend_id.id)

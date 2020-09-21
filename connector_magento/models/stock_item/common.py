@@ -6,6 +6,7 @@ from odoo import api, models, fields
 from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.job import identity_exact
+from odoo.exceptions import MissingError
 
 _logger = logging.getLogger(__name__)
 
@@ -103,9 +104,12 @@ class MagentoStockItem(models.Model):
     def run_sync_to_magento(self):
         _logger.info("Stock Item sync to magento got called, ")
         self.ensure_one()
-        with self.backend_id.work_on(self._name) as work:
-            exporter = work.component(usage='record.exporter')
-            return exporter.run(self)
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter')
+                return exporter.run(self)
+        except MissingError as e:
+            return True
 
 
 class MagentoStockItemAdapter(Component):

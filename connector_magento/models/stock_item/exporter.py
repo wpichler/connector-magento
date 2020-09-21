@@ -5,6 +5,7 @@
 
 from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
+from odoo.addons.connector_magento.components.backend_adapter import MagentoNotFoundError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -25,9 +26,10 @@ class MagentoStockItemExporter(Component):
         self.binding = binding.sudo()
         self.external_id = self.binder.to_external(self.binding)
         # Read current stock items for product here to be able to check if it still does exists
-        item = self.backend_adapter.read(self.external_id, binding=binding)
-        if not item or int(item['item_id']) != int(binding.external_id):
-            # Does not exists anymore - so delete it
+        try:
+            item = self.backend_adapter.read(self.external_id, binding=binding)
+        except MagentoNotFoundError as e:
+            _logger.info("Stock item not found on read - so delete binding")
             binding.unlink()
             return True
         pbinding = binding.magento_product_binding_id or binding.magento_product_template_binding_id

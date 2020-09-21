@@ -25,6 +25,10 @@ except ImportError:
 MAGENTO_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
+class MagentoNotFoundError(Exception):
+    """ Error if we get 404 from magento side """
+
+
 class MagentoLocation(object):
 
     def __init__(self, location, username, password, version,
@@ -109,6 +113,8 @@ class MagentoAPI(object):
                         message = reason.message
                     elif hasattr(e, 'code'):
                         message = "HTTP Error Code: %s" % e.code
+                    elif hasattr(e, 'response') and hasattr(e.response, 'status_code'):
+                        message = "HTTP Error Code: %s" % e.response.status_code
                     else:
                         message = str(e)
                 except:
@@ -123,6 +129,9 @@ class MagentoAPI(object):
             # record(method, arguments, result)
             return result
         except (socket.gaierror, socket.error, socket.timeout) as err:
+            if hasattr(err, 'response') and hasattr(err.response, 'status_code'):
+                if err.response.status_code == 404:
+                    raise MagentoNotFoundError('404 not found on Magento side')
             raise NetworkRetryableError(
                 'A network error caused the failure of the job: '
                 '%s' % err)
@@ -378,7 +387,11 @@ class GenericAdapter(AbstractComponent):
     def delete(self, id, binding=None):
         """ Delete a record on the external system """
         if self.work.magento_api._location.version == '2.0':
-            res = self._call(self._delete_url(id, binding), None, http_method="delete")
+            try:
+                res = self._call(self._delete_url(id, binding), None, http_method="delete")
+            except MagentoNotFoundError as e:
+                _logger.info("Item does not exists on magento side - this is ok for a delete")
+                return True
             return res
         return self._call('%s.delete' % self._magento_model, [int(id)])
 
