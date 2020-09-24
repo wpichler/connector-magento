@@ -199,15 +199,16 @@ class ProductProductExporter(Component):
         def sort_by_position(elem):
             return elem.position
 
+        if not self.binding.export_base_image or not self.binding.odoo_id.image:
+            # Do not export base image is set or no base image - so check if there was already base image exported - if so - delete it
+            for media_binding in self.binding.magento_image_bind_ids.filtered(lambda m: m.type == 'product_image'):
+                media_binding.unlink()
+            return
         # We do export the base image on position 0
         mbinding = None
         for media_binding in sorted(self.binding.magento_image_bind_ids.filtered(lambda m: m.type == 'product_image'), key=sort_by_position):
             mbinding = media_binding
             break
-        if not self.binding.odoo_id.image:
-            if mbinding:
-                mbinding.unlink()
-            return
         # Create new media binding entry for main image
         mime = magic.Magic(mime=True)
         mimetype = mime.from_buffer(base64.b64decode(self.binding.odoo_id.image))

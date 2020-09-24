@@ -13,6 +13,12 @@ import urllib.request, urllib.parse, urllib.error
 _logger = logging.getLogger(__name__)
 
 
+class ProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    export_base_image = fields.Boolean('Export Base Image', default=True)
+
+
 class MagentoProductTemplate(models.Model):
     _inherit = 'magento.product.template'
 

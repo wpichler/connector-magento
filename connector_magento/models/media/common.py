@@ -53,6 +53,7 @@ class MagentoProductMedia(models.Model):
     type = fields.Selection([
         ('product_image', 'Product Image'),
         ('product_image_ids', 'Extra Product Images'),
+        ('attribute_image', 'Attribute Image'),
     ], string='Type')
     file = fields.Char(string="File", required=True)
     url = fields.Char(string="URL", compute='_compute_url', store=False)

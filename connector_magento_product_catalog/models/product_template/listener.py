@@ -32,6 +32,7 @@ class MagentoProductTemplateExportListener(Component):
     _name = 'magento.product.template.export.listener'
     _inherit = 'base.connector.listener'
     _apply_on = ['product.template']
+    _variant_update_fields = ['export_base_image']
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
@@ -49,4 +50,7 @@ class MagentoProductTemplateExportListener(Component):
         else:
             binding_ids = record.magento_template_bind_ids
         for binding in binding_ids:
-            binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
+            binding.with_delay(identity_key=identity_exact).export_record(
+                binding.backend_id,
+                update_variants=any(field in self._variant_update_fields for field in fields)
+            )

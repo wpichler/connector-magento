@@ -73,6 +73,9 @@ class ProductTemplateDefinitionExporter(Component):
     def _update_binding_record_after_write(self, data):
         _logger.info("Got result data: %s", data)
 
+    def _must_update_variants(self):
+        return self.update_variants
+
     def _export_variants(self):
         record = self.binding
         variant_exporter = self.component(usage='record.exporter', model_name='magento.product.product')
@@ -86,6 +89,7 @@ class ProductTemplateDefinitionExporter(Component):
                     'magento_configurable_id': record.id,
                     'visibility': '1',
                 })
+            if self._must_update_variants():
                 variant_exporter.run(m_prod)
 
     def _create_attribute_lines(self):
@@ -125,6 +129,10 @@ class ProductTemplateDefinitionExporter(Component):
         for storeview_id in self.env['magento.storeview'].search([('backend_id', '=', self.backend_record.id)]):
             self.binding.export_product_template_for_storeview(storeview_id=storeview_id)
         '''
+
+    def run(self, binding, update_variants=False):
+        self.update_variants = update_variants
+        return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 
 class ProductTemplateExportMapper(Component):
