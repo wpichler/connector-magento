@@ -17,7 +17,7 @@ class MagentoProductMediaBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        record.with_delay(identity_key=identity_exact).export_record(record.backend_id, fields)
 
     def on_record_unlink(self, record):
         with record.backend_id.work_on(record._name) as work:
@@ -35,12 +35,13 @@ class MagentoProductMediaExportListener(Component):
     _inherit = 'base.connector.listener'
     _apply_on = ['product.product']
 
-    # XXX must check record.env!!!
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
         if 'image' not in fields and 'image_medium' not in fields:
             # We do only update on write on image field
             return
+        if not record.export_base_image:
+            return
         for binding in record.magento_bind_ids:
-            for image_binding in binding.magento_image_bind_ids:
+            for image_binding in binding.magento_image_bind_ids.filtered(lambda mi: mi.type == 'product_image'):
                 image_binding.with_delay(identity_key=identity_exact).export_record(image_binding.backend_id)

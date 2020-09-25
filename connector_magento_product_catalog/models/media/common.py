@@ -6,13 +6,11 @@ import logging
 from odoo import models, fields, api, _
 from odoo.addons.component.core import Component
 import urllib.request, urllib.parse, urllib.error
-from urllib.parse import urljoin
-import base64
-from odoo.addons.queue_job.job import identity_exact
 from odoo.addons.queue_job.job import job, related_action
 
 
 _logger = logging.getLogger(__name__)
+
 
 class MagentoProductMedia(models.Model):
     _inherit = 'magento.product.media'
@@ -48,8 +46,11 @@ class ProductMediaAdapter(Component):
                 return urllib.parse.quote(term.encode('utf-8'), safe='')
             return term
 
-        pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
-        return 'products/%s/media' % (escape(pbinding.external_id), )
+        if self.variant_sku:
+            return 'products/%s/media' % (escape(self.variant_sku), )
+        else:
+            pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
+            return 'products/%s/media' % (escape(pbinding.external_id), )
 
     def _write_url(self, id, binding=None):
         def escape(term):
@@ -57,12 +58,24 @@ class ProductMediaAdapter(Component):
                 return urllib.parse.quote(term.encode('utf-8'), safe='')
             return term
 
-        pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
-        return 'products/%s/media/%s' % (escape(pbinding.external_id), id)
+        if self.variant_sku:
+            return 'products/%s/media/%s' % (escape(self.variant_sku), id, )
+        else:
+            pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
+            return 'products/%s/media/s' % (escape(pbinding.external_id), id, )
+
+    def create(self, data, binding=None, storeview_code=None, variant_sku=None):
+        self.variant_sku = variant_sku
+        return super(ProductMediaAdapter, self).create(data, binding, storeview_code)
+
+    def write(self, id, data, binding=None, storeview_code=None, variant_sku=None):
+        self.variant_sku = variant_sku
+        return super(ProductMediaAdapter, self).write(id, data, binding, storeview_code)
 
     def _delete_url(self, id, binding=None):
         def escape(term):
             if isinstance(term, str):
                 return urllib.parse.quote(term.encode('utf-8'), safe='')
             return term
+
         return 'products/%s/media/%s' % (id[1], id[0])

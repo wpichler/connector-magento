@@ -5,6 +5,9 @@
 
 from odoo.addons.component.core import Component
 import logging
+from slugify import slugify
+import magic
+import base64
 
 _logger = logging.getLogger(__name__)
 
@@ -31,6 +34,9 @@ class ProductTemplateDefinitionExporter(Component):
             })
             position += 1
         self.backend_adapter.update_product_links(record.external_id, a_products)
+
+    def _export_images(self):
+        pass
 
     def _after_export(self):
         self._export_product_links()

@@ -17,6 +17,7 @@ class ProductTemplateDefinitionExporter(Component):
     _name = 'magento.product.template.exporter'
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
+    _variant_update_fields = ['export_base_image']
 
     def _sku_inuse(self, sku):
         search_count = self.env['magento.product.template'].search_count([
@@ -130,8 +131,10 @@ class ProductTemplateDefinitionExporter(Component):
             self.binding.export_product_template_for_storeview(storeview_id=storeview_id)
         '''
 
-    def run(self, binding, update_variants=False):
-        self.update_variants = update_variants
+    def run(self, binding, fields=None):
+        self.update_variants = False
+        if fields:
+            self.update_variants = any(field in self._variant_update_fields for field in fields)
         return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 

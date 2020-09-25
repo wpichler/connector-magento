@@ -63,7 +63,7 @@ class MagentoProductImageExportListener(Component):
             return
         self._create_binding(record)
         for binding in record.magento_bind_ids:
-            binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
+            binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id, fields)
 
     def on_record_unlink(self, record):
         for binding in record.magento_bind_ids:

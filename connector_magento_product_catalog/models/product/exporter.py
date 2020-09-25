@@ -254,7 +254,47 @@ class ProductProductExporter(Component):
         for stock_item in self.binding.magento_stock_item_ids:
             stock_item.sync_to_magento()
 
+    def _get_magento_image_ids(self):
+        record = self.backend_adapter.read(self.external_id)
+        return [str(entry['id']) for entry in record.get('media_gallery_entries', []) if entry['media_type'] == 'image']
+
+    def _get_odoo_magento_image_ids(self):
+        if 'magento.product.template' in self._apply_on:
+            image_ids = self.env['magento.product.media'].search([
+                ('backend_id', '=', self.backend_record.id),
+                ('magento_product_tmpl_id', '=', self.binding.id),
+            ])
+        else:
+            image_ids = self.env['magento.product.media'].search([
+                ('backend_id', '=', self.backend_record.id),
+                ('magento_product_id', '=', self.binding.id),
+            ])
+        iids = []
+        for image in image_ids:
+            if str.isnumeric(str(image.external_id)):
+                iids.append(image.external_id)
+            else:
+                eids = image.external_id.split(";")
+                for eid in eids:
+                    (sku, iid) = eid.split("|=")
+                    if sku == self.binding.external_id:
+                        iids.append(iid)
+        return iids
+
+    def _sync_images(self):
+        '''
+        Do delete images which are on magento side - but not on odoo side
+        :return:
+        '''
+        magento_ids = self._get_magento_image_ids()
+        odoo_magento_ids = self._get_odoo_magento_image_ids()
+        magento_delete_ids = [mid for mid in magento_ids if mid not in odoo_magento_ids]
+        image_backend_adapter = self.component(usage='backend.adapter', model_name='magento.product.media')
+        for m_image_id in magento_delete_ids:
+            image_backend_adapter.delete((m_image_id, self.external_id,))
+
     def _after_export(self):
+        self._sync_images()
         self._export_base_image()
         self._export_stock()
 

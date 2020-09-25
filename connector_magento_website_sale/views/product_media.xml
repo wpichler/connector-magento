@@ -9,10 +9,10 @@
 	    <field name="arch" type="xml">
 
 	        <xpath expr="//field[@name='magento_product_id']" position="before">
-	            <field name="odoo_id" attrs="{'invisible': [('type', '!=', 'product_image_ids')]}"/>
+	            <field name="odoo_id" attrs="{'invisible': [('type', 'not in', ['product_image_ids','attribute_image'])]}"/>
 	        </xpath>
 	        <xpath expr="//field[@name='pt_image']" position="after">
-				<field name="image_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': [('type', '!=', 'product_image_ids')]}"/>
+				<field name="image_image" widget="image" class="oe_avatar" readonly="1" attrs="{'invisible': [('type', 'not in', ['product_image_ids','attribute_image'])]}"/>
 	        </xpath>
 
 
