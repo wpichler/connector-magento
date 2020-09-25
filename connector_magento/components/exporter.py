@@ -101,6 +101,9 @@ class MagentoBaseExporter(AbstractComponent):
 
         result = self._run(*args, **kwargs)
 
+        if not self.external_id:
+            return result
+
         self.binder.bind(self.external_id, self.binding)
         # Commit so we keep the external ID when there are several
         # exports (due to dependencies) and one of them fails.

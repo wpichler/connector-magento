@@ -10,6 +10,15 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
+class ProductMediaExporter(Component):
+    _inherit = 'magento.product.media.exporter'
+
+    def _has_to_skip(self):
+        if self.binding.type in ['product_image_ids', 'attribute_image'] and (not self.binding.odoo_id or not self.binding.odoo_id.image):
+            return True
+        return super(ProductMediaExporter, self)._has_to_skip()
+
+
 class ProductMediaExportMapper(Component):
     _inherit = 'magento.product.media.export.mapper'
 

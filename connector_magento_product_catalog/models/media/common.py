@@ -62,7 +62,7 @@ class ProductMediaAdapter(Component):
             return 'products/%s/media/%s' % (escape(self.variant_sku), id, )
         else:
             pbinding = binding.magento_product_id if binding.magento_product_id else binding.magento_product_tmpl_id
-            return 'products/%s/media/s' % (escape(pbinding.external_id), id, )
+            return 'products/%s/media/%s' % (escape(pbinding.external_id), id, )
 
     def create(self, data, binding=None, storeview_code=None, variant_sku=None):
         self.variant_sku = variant_sku

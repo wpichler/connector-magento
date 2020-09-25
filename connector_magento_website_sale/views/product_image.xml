@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_product_image_form" model="ir.ui.view">
+            <field name="name">product.image.form</field>
+            <field name="model">product.image</field>
+            <field name="inherit_id" ref="product_variant_multi_image.view_product_image_form"/>
+            <field name="arch" type="xml">
+                <field name="valid_product_attribute_value_ids" position="after">
+                    <label for="magento_bind_ids"/>
+                    <field name="magento_bind_ids" nolabel="1"/>
+                </field>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

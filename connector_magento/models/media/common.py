@@ -12,6 +12,7 @@ import uuid
 import requests
 from odoo.addons.queue_job.job import identity_exact
 from odoo.addons.queue_job.job import job, related_action
+from slugify import slugify
 
 
 _logger = logging.getLogger(__name__)
@@ -93,6 +94,29 @@ class MagentoProductMedia(models.Model):
             extension = 'png' if vals['mimetype']=='image/png' else 'jpeg'
             vals['file'] = "%s.%s" % (uuid.uuid4(), extension)
         return super(MagentoProductMedia, self).create(vals)
+
+    @api.model
+    def get_unique_filename(self, image, backend_id, mimetype):
+        extension = 'png' if mimetype == 'image/png' else 'jpeg'
+        # Find unique filename
+        filename = "%s.%s" % (slugify(image.base_product_tmpl_id.name, to_lower=True),  extension)
+        i = 0
+        while self.env['magento.product.media'].search_count([
+            ('backend_id', '=', backend_id.id),
+            ('file', '=', filename)
+        ]) > 0:
+            filename = "%s-%s.%s" % (slugify(image.base_product_tmpl_id.name, to_lower=True), i, extension)
+            i += 1
+        return filename
+
+    @job(default_channel='root.magento.image', retry_pattern={
+        1: 1 * 60,
+        5: 5 * 60,
+    })
+    @related_action(action='related_action_unwrap_binding')
+    @api.multi
+    def export_record(self, backend_id, fields=None):
+        return super(MagentoProductMedia, self).export_record(backend_id, fields)
 
     @api.multi
     @job(default_channel='root.magento')

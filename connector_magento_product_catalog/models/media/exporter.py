@@ -27,27 +27,7 @@ class ProductMediaExporter(Component):
         """ Create the Magento record """
         # special check on data before export
         self._validate_create_data(data)
-        if self.binding.type == 'attribute_image':
-            # We have to create this image for every variant with this attribute on magento side
-            external_ids = ""
-            # First - create product template image
-            eid = self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code,
-                                              variant_sku=self.binding.magento_product_tmpl_id.external_id)
-            external_ids += (";" if external_ids > "" else "") + self.binding.magento_product_tmpl_id.external_id + "|=" + str(eid)
-
-            for variant in self.binding.magento_product_tmpl_id.product_variant_ids.filtered(lambda
-                                                                                                     v: not self.binding.odoo_id.attribute_value_id or self.binding.odoo_id.attribute_value_id.id in v.attribute_value_ids.ids):
-                vbinding = variant.magento_bind_ids.filtered(lambda vb: vb.backend_id == self.binding.backend_id)
-                if vbinding:
-                    data.update({
-                        'file': "%s-%s" % (uuid.uuid4(), data['file'], )
-                    })
-                    eid = self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code,
-                                                      variant_sku=vbinding[0].external_id)
-                    external_ids += (";" if external_ids > "" else "") + vbinding[0].external_id + "|=" + str(eid)
-            return external_ids
-        else:
-            return self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code)
+        return self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code)
 
     def _update(self, data, storeview_code=None):
         """ Update an Magento record """
@@ -56,68 +36,22 @@ class ProductMediaExporter(Component):
         do_delete = 'content' in data
         if do_delete:
             try:
-                if self.binding.type == 'attribute_image':
-                    eids = self.binding.external_id.split(";")
-                    for eid in eids:
-                        (sku, iid) = eid.split("|=")
-                        self.backend_adapter.delete((iid, sku,))
-                else:
-                    self.backend_adapter.delete((self.binding.external_id,
-                                                 self.binding.magento_product_id.external_id if self.binding.magento_product_id else self.binding.magento_product_tmpl_id.external_id,))
+                self.backend_adapter.delete((self.binding.external_id,
+                                             self.binding.magento_product_id.external_id if self.binding.magento_product_id else self.binding.magento_product_tmpl_id.external_id,))
             except:
                 _logger.info("Got error on delete old media - ignore it")
-        if self.binding.type == 'attribute_image':
-            # We have to create this image for every variant with this attribute on magento side
-            external_ids = ""
-            # First - create product template image
-            if not do_delete:
-                eids = self.binding.external_id.split(";")
-                for eid in eids:
-                    (sku, iid) = eid.split("|=")
-                    if sku == self.binding.magento_product_tmpl_id.external_id:
-                        data.update({
-                            'id': iid,
-                        })
-                        self.backend_adapter.write(iid, data, binding=self.binding,
-                                                   storeview_code=storeview_code,
-                                                   variant_sku=self.binding.magento_product_tmpl_id.external_id)
-                        external_ids += (";" if external_ids > "" else "") + self.binding.magento_product_tmpl_id.external_id + "|=" + str(iid)
-                        break
-            if do_delete:
-                eid = self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code,
-                                                  variant_sku=self.binding.magento_product_tmpl_id.external_id)
-                external_ids += (";" if external_ids > "" else "") + self.binding.magento_product_tmpl_id.external_id + "|=" + str(eid)
-
-            for variant in self.binding.magento_product_tmpl_id.product_variant_ids.filtered(lambda
-                                                                                                     v: not self.binding.odoo_id.attribute_value_id or self.binding.odoo_id.attribute_value_id.id in v.attribute_value_ids.ids):
-                vbinding = variant.magento_bind_ids.filtered(lambda vb: vb.backend_id == self.binding.backend_id)
-                if vbinding:
-                    if do_delete:
-                        eid = self.backend_adapter.create(data, binding=self.binding, storeview_code=storeview_code,
-                                                          variant_sku=vbinding[0].external_id)
-                        external_ids += (";" if external_ids > "" else "") + vbinding[0].external_id + "|=" + str(eid)
-                    else:
-                        eids = self.binding.external_id.split(";")
-                        for eid in eids:
-                            (sku, iid) = eid.split("|=")
-                            if sku == vbinding.external_id:
-                                data.update({
-                                    'id': iid,
-                                })
-                                _logger.info("Do update with: %s", data)
-                                self.backend_adapter.write(iid, data, binding=self.binding,
-                                                           storeview_code=storeview_code,
-                                                           variant_sku=vbinding[0].external_id)
-                                external_ids += (";" if external_ids > "" else "") + vbinding[0].external_id + "|=" + str(iid)
-            return external_ids
+        if do_delete:
+            return self.backend_adapter.create(data, self.binding)
         else:
-            if do_delete:
-                return self.backend_adapter.create(data, self.binding)
-            else:
-                self.backend_adapter.write(self.binding.external_id, data, self.binding)
-                return self.binding.external_id
+            self.backend_adapter.write(self.binding.external_id, data, self.binding)
+            return self.binding.external_id
 
     def _has_to_skip(self):
+        # Check for external id
+        if self.binding.magento_product_id and not self.binding.magento_product_id.external_id:
+            return True
+        if self.binding.magento_product_tmpl_id and not self.binding.magento_product_tmpl_id.external_id:
+            return True
         if not self.binding.magento_product_id.image and not self.binding.magento_product_tmpl_id.image:
             return True
         else:
@@ -143,7 +77,7 @@ class ProductMediaExporter(Component):
         map_record = self._map_data()
 
         if self.external_id:
-            if 'image' in fields:
+            if fields and 'image' in fields:
                 # We have to delete old images first - then create new images - so we need create data
                 record = self._create_data(map_record, fields=fields)
             else:
@@ -207,7 +141,6 @@ class ProductMediaExportMapper(Component):
     def get_file(self, record):
         return {'file': record.file}
 
-    '''
     @mapping
     def get_id(self, record):
         if self.options.for_create:
@@ -215,7 +148,6 @@ class ProductMediaExportMapper(Component):
         return {
             'id': record.external_id,
         }
-    '''
 
     @mapping
     @only_create

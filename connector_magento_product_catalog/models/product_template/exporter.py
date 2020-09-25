@@ -18,6 +18,7 @@ class ProductTemplateDefinitionExporter(Component):
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
     _variant_update_fields = ['export_base_image']
+    _image_update_fields = ['attribute_line_ids']
 
     def _sku_inuse(self, sku):
         search_count = self.env['magento.product.template'].search_count([
@@ -135,6 +136,9 @@ class ProductTemplateDefinitionExporter(Component):
         self.update_variants = False
         if fields:
             self.update_variants = any(field in self._variant_update_fields for field in fields)
+        self.update_images = False
+        if fields:
+            self.update_images = any(field in self._image_update_fields for field in fields)
         return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 
