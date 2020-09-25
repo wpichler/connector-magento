@@ -411,7 +411,9 @@ class ProductImporter(Component):
             binding,
             mapper='magento.product.product.import.mapper'
         )
+        self._do_media_import(binding)
 
+    def _do_media_import(self, binding):
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
         mids = []
         for media in self.magento_record['media_gallery_entries']:

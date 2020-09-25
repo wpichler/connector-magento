@@ -16,11 +16,5 @@ class ProductMediaDeleter(Component):
 
         :param external_id: identifier of the record to delete
         """
-        if str.isnumeric(str(external_id[0])):
-            self.backend_adapter.delete(external_id)
-        else:
-            eids = external_id[0].split(";")
-            for eid in eids:
-                (sku, iid) = eid.split("|=")
-                self.backend_adapter.delete((iid, sku,))
+        self.backend_adapter.delete(external_id)
         return 'Record %s deleted on Magento' % (external_id,)

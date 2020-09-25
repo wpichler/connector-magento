@@ -50,11 +50,11 @@ class ProductMediaExportMapper(Component):
     @mapping
     def get_types(self, record):
         itypes = []
-        if record.type in ['product_image_ids', 'attribute_image'] and record.odoo_id and record.odoo_id.is_primary_image:
+        if record.type in ['product_image_ids', 'attribute_image'] and record.odoo_id and record.odoo_id.is_primary_image and not record.odoo_id.base_product_tmpl_id.export_base_image:
             itypes.append('image')
             itypes.append('small_image')
             itypes.append('thumbnail')
             itypes.append('swatch_image')
             return {'types': itypes}
         else:
-            return super(ProductMediaExportMapper,self).get_types(record)
+            return super(ProductMediaExportMapper, self).get_types(record)

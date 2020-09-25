@@ -33,6 +33,7 @@ class ProductProductExporter(Component):
                 categ_exporter.run(m_categ)
         return
 
+    '''
     def _check_image_bindings(self):
         for ibinding in self.binding.magento_image_bind_ids.filtered(lambda b: b.type == 'product_image_ids'):
             if not ibinding.odoo_id \
@@ -89,28 +90,12 @@ class ProductProductExporter(Component):
                                           model_name='magento.product.media')
                 exporter.run(magento_image)
         return
-
-    def _get_odoo_magento_image_ids(self):
-        image_ids = super(ProductProductExporter, self)._get_odoo_magento_image_ids()
-        # Now do add my images based on the attributes
-        if 'magento.product.template' in self._apply_on:
-            pass
-        else:
-            # Here we do add the attribute images
-            tbinding = self.binding.magento_configurable_id
-            for ibinding in tbinding.magento_image_bind_ids.filtered(lambda b: b.type == 'attribute_image'):
-                if ibinding.odoo_id and ibinding.odoo_id.attribute_value_id and ibinding.odoo_id.attribute_value_id.id in self.binding.attribute_value_ids.ids:
-                    eids = ibinding.external_id.split(';')
-                    for eid in eids:
-                        (sku, iid) = eid.split("|=")
-                        if sku == self.binding.external_id:
-                            image_ids.append(iid)
-        return image_ids
+    '''
 
     def _after_export(self):
         """ Export the dependencies for the record"""
         super(ProductProductExporter, self)._after_export()
-        self._export_images()
+        #self._export_images()
         return
 
 

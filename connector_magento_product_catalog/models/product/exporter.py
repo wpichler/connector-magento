@@ -259,26 +259,9 @@ class ProductProductExporter(Component):
         return [str(entry['id']) for entry in record.get('media_gallery_entries', []) if entry['media_type'] == 'image']
 
     def _get_odoo_magento_image_ids(self):
-        if 'magento.product.template' in self._apply_on:
-            image_ids = self.env['magento.product.media'].search([
-                ('backend_id', '=', self.backend_record.id),
-                ('magento_product_tmpl_id', '=', self.binding.id),
-            ])
-        else:
-            image_ids = self.env['magento.product.media'].search([
-                ('backend_id', '=', self.backend_record.id),
-                ('magento_product_id', '=', self.binding.id),
-            ])
         iids = []
-        for image in image_ids:
-            if str.isnumeric(str(image.external_id)):
-                iids.append(image.external_id)
-            else:
-                eids = image.external_id.split(";")
-                for eid in eids:
-                    (sku, iid) = eid.split("|=")
-                    if sku == self.binding.external_id:
-                        iids.append(iid)
+        for image in self.binding.magento_image_bind_ids:
+            iids.append(image.external_id)
         return iids
 
     def _sync_images(self):
