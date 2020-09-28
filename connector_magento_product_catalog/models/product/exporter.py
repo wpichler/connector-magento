@@ -275,6 +275,14 @@ class ProductProductExporter(Component):
         image_backend_adapter = self.component(usage='backend.adapter', model_name='magento.product.media')
         for m_image_id in magento_delete_ids:
             image_backend_adapter.delete((m_image_id, self.external_id,))
+        # Now check images which are on odoo side - but not on magento side
+        odoo_delete_ids = [mid for mid in odoo_magento_ids if mid not in magento_ids]
+        # Delete bindings
+        if odoo_delete_ids:
+            self.env['magento.product.media'].search([
+                ('external_id', 'in', odoo_delete_ids),
+                ('backend_id', '=', self.backend_record.id),
+            ]).with_context(connector_no_export=True).unlink()
 
     def _after_export(self):
         self._sync_images()
