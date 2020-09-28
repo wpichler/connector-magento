@@ -136,6 +136,10 @@ class ProductTemplateImporter(Component):
 
         # Import Category positions
         self._import_category_positions(binding)
+        # Do import stock item
+        self._import_stock(binding)
+        if self.backend_record.product_syncro_strategy == 'odoo_first':
+            return
         # Import Images
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
         for media in self.magento_record['media_gallery_entries']:
@@ -144,11 +148,6 @@ class ProductTemplateImporter(Component):
         for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image'), key=sort_by_position):
             binding.with_context(connector_no_export=True).image = media_binding.image
             break
-        '''
-        image_importer = self.component(usage='template.image.importer')
-        image_importer.run(self.external_id, binding,
-                           data=self.magento_record)
-        '''
         # Import variants
         magento_variants = self.backend_adapter.list_variants(self.external_id)
         variant_binder = self.binder_for('magento.product.product')
@@ -187,8 +186,7 @@ class ProductTemplateImporter(Component):
             binding,
             mapper='magento.product.template.import.mapper'
         )
-        # Do import stock item
-        self._import_stock(binding)
+
 
     def _import_stock(self, binding):
         stock_importer = self.component(usage='record.importer',
