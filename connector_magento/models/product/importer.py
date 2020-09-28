@@ -411,7 +411,15 @@ class ProductImporter(Component):
             binding,
             mapper='magento.product.product.import.mapper'
         )
-        self._do_media_import(binding)
+        # Do import stock item
+        self._import_stock(binding)
+        # Do import media items
+        # Disabled for now - needs more checks
+        #self._do_media_import(binding)
+        # Do import bundle data
+        if self.magento_record['type_id'] == 'bundle':
+            bundle_importer = self.component(usage='product.bundle.importer')
+            bundle_importer.run(binding, self.magento_record)
 
     def _do_media_import(self, binding):
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
@@ -430,11 +438,6 @@ class ProductImporter(Component):
             for media_binding in sorted(binding.magento_image_bind_ids.filtered(lambda m: m.media_type == 'image'), key=sort_by_position):
                 binding.odoo_id.with_context(connector_no_export=True).image = media_binding.image
                 break
-        if self.magento_record['type_id'] == 'bundle':
-            bundle_importer = self.component(usage='product.bundle.importer')
-            bundle_importer.run(binding, self.magento_record)
-        # Do import stock item
-        self._import_stock(binding)
 
     def _import_stock(self, binding):
         stock_importer = self.component(usage='record.importer',

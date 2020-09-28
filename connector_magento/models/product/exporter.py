@@ -24,6 +24,8 @@ class ProductProductExporterPrice(Component):
 
     def _run(self, fields=None):
         assert self.binding
+        if not self.binding.external_id:
+            return
         product = self.binding.odoo_id
         # We do have to update the price per website
         websites = self.binding.website_ids

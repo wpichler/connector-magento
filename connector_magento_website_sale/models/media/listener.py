@@ -12,7 +12,7 @@ class MagentoProductImageExportListener(Component):
     _inherit = 'base.connector.listener'
     _apply_on = ['product.image']
 
-    def _check_create_binding(self, record):
+    def _check_create_binding(self, record, do_delay=True):
         def create_binding(data, backend):
             mime = magic.Magic(mime=True)
             mimetype = mime.from_buffer(base64.b64decode(record.image))
@@ -105,8 +105,10 @@ class MagentoProductImageExportListener(Component):
         for binding in record.magento_bind_ids:
             key = "magento_product_media_%s_%s" % (binding.id, binding.backend_id.id, )
             eta = datetime.datetime.now() + datetime.timedelta(seconds=10)
-            binding.with_delay(identity_key=key, eta=eta).export_record(binding.backend_id)
-
+            if do_delay:
+                binding.with_delay(identity_key=key, eta=eta).export_record(binding.backend_id)
+            else:
+                binding.export_record(binding.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_create(self, record, fields=None):

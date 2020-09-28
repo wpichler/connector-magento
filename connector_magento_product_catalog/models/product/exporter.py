@@ -110,6 +110,21 @@ class ProductProductExporter(Component):
                                          MAGENTO_DATETIME_FORMAT)
         return sync_date < magento_date
 
+    def _update_binding_record_after_write(self, data):
+        """
+        This will only get called on a new product export - not on updates !
+        :param data:
+        :return:
+        """
+        for attr in data.get('custom_attributes', []):
+            data[attr['attribute_code']] = attr['value']
+        # Do use the importer to update the binding
+        importer = self.component(usage='record.importer',
+                                  model_name='magento.product.product')
+        _logger.info("Do update record with: %s", data)
+        importer.run(data, force=True, binding=self.binding.sudo())
+        self.external_id = data['sku']
+
     def _update_binding_record_after_create(self, data):
         """
         This will only get called on a new product export - not on updates !
@@ -120,7 +135,7 @@ class ProductProductExporter(Component):
             data[attr['attribute_code']] = attr['value']
         # Do use the importer to update the binding
         importer = self.component(usage='record.importer',
-                                model_name='magento.product.product')
+                                  model_name='magento.product.product')
         _logger.info("Do update record with: %s", data)
         importer.run(data, force=True, binding=self.binding.sudo())
         self.external_id = data['sku']

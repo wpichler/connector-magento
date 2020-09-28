@@ -46,10 +46,7 @@ class ProductProductExporter(Component):
                 ibinding.unlink()
 
     def _export_images(self):
-        listener = self.component(usage='event.listener',
-                                  model_name='product.image')
-        for image in self.binding.odoo_id.base_product_image_ids:
-            listener._check_create_binding(image)
+        pass
 
     def _after_export(self):
         """ Export the dependencies for the record"""

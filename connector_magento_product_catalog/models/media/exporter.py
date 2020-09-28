@@ -43,11 +43,7 @@ class ProductMediaExporter(Component):
         if do_delete:
             return self.backend_adapter.create(data, self.binding)
         else:
-            try:
-                self.backend_adapter.write(self.binding.external_id, data, self.binding)
-            except MagentoNotFoundError as e:
-                # Try to create it
-                return self.backend_adapter.create(data, self.binding)
+            self.backend_adapter.write(self.binding.external_id, data, self.binding)
             return self.binding.external_id
 
     def _has_to_skip(self):
@@ -88,7 +84,11 @@ class ProductMediaExporter(Component):
                 record = self._update_data(map_record, fields=fields)
             if not record:
                 return _('Nothing to export.')
-            data = self._update(record)
+            try:
+                data = self._update(record)
+            except MagentoNotFoundError as e:
+                record = self._create_data(map_record, fields=fields)
+                data = self._create(record)
             self._update_binding_record_after_create(data)
         else:
             record = self._create_data(map_record, fields=fields)
