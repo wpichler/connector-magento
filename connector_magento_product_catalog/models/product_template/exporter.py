@@ -17,7 +17,7 @@ class ProductTemplateDefinitionExporter(Component):
     _name = 'magento.product.template.exporter'
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
-    _variant_update_fields = ['export_base_image']
+    _variant_update_fields = ['export_base_image', 'list_price', 'name']
     _image_update_fields = ['attribute_line_ids']
 
     def _sku_inuse(self, sku):
@@ -76,7 +76,7 @@ class ProductTemplateDefinitionExporter(Component):
         _logger.info("Got result data: %s", data)
 
     def _must_update_variants(self):
-        return self.update_variants
+        return True
 
     def _export_variants(self):
         record = self.binding

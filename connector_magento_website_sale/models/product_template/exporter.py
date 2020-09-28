@@ -33,14 +33,6 @@ class ProductTemplateDefinitionExporter(Component):
             position += 1
         self.backend_adapter.update_product_links(record.external_id, a_products)
 
-    def _export_images(self):
-        if not self.update_images:
-            return
-        listener = self.component(usage='event.listener',
-                                  model_name='product.image')
-        for image in self.binding.odoo_id.base_product_image_ids:
-            listener._check_create_binding(image)
-
     def _after_export(self):
         self._export_product_links()
         super(ProductTemplateDefinitionExporter, self)._after_export()
