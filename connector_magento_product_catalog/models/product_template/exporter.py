@@ -93,7 +93,7 @@ class ProductTemplateDefinitionExporter(Component):
                     'visibility': '1',
                 })
                 created = True
-            if self._must_update_variants() or created:
+            if self._must_update_variants() or created or not m_prod.external_id:
                 variant_exporter.run(m_prod)
 
     def _create_attribute_lines(self):
