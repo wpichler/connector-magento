@@ -7,7 +7,7 @@ from odoo.addons.component.core import Component
 from odoo.addons.connector.components.mapper import mapping, only_create
 import os.path
 import logging
-import uuid
+from odoo.addons.connector_magento.components.backend_adapter import MagentoNotFoundError
 
 _logger = logging.getLogger(__name__)
 
@@ -43,7 +43,11 @@ class ProductMediaExporter(Component):
         if do_delete:
             return self.backend_adapter.create(data, self.binding)
         else:
-            self.backend_adapter.write(self.binding.external_id, data, self.binding)
+            try:
+                self.backend_adapter.write(self.binding.external_id, data, self.binding)
+            except MagentoNotFoundError as e:
+                # Try to create it
+                return self.backend_adapter.create(data, self.binding)
             return self.binding.external_id
 
     def _has_to_skip(self):
