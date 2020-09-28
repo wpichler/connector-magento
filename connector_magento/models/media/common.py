@@ -4,6 +4,7 @@
 
 import logging
 from odoo import models, fields, api, _
+from odoo.exceptions import MissingError
 from odoo.addons.component.core import Component
 import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
@@ -116,7 +117,11 @@ class MagentoProductMedia(models.Model):
     @related_action(action='related_action_unwrap_binding')
     @api.multi
     def export_record(self, backend_id, fields=None):
-        return super(MagentoProductMedia, self).export_record(backend_id, fields)
+        try:
+            return super(MagentoProductMedia, self).export_record(backend_id, fields)
+        except MissingError as e:
+            _logger.error("Record not found anymore - so the job is to be set to done")
+            return
 
     @api.multi
     @job(default_channel='root.magento')

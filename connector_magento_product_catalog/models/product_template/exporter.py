@@ -83,6 +83,7 @@ class ProductTemplateDefinitionExporter(Component):
         variant_exporter = self.component(usage='record.exporter', model_name='magento.product.product')
         for p in record.product_variant_ids:
             m_prod = p.magento_bind_ids.filtered(lambda m: m.backend_id == record.backend_id)
+            created = False
             if not m_prod.id:
                 m_prod = self.env['magento.product.product'].with_context(connector_no_export=True).create({
                     'backend_id': self.backend_record.id,
@@ -91,7 +92,8 @@ class ProductTemplateDefinitionExporter(Component):
                     'magento_configurable_id': record.id,
                     'visibility': '1',
                 })
-            if self._must_update_variants():
+                created = True
+            if self._must_update_variants() or created:
                 variant_exporter.run(m_prod)
 
     def _create_attribute_lines(self):
