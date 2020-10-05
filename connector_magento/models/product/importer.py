@@ -144,8 +144,10 @@ class ProductImportMapper(Component):
     @mapping
     def attributes(self, record):
         attribute_binder = self.binder_for('magento.product.attribute')
+        line_binder = self.binder_for('magento.template.attribute.line')
         value_binder = self.binder_for('magento.product.attribute.value')
         attribute_value_ids = [(5, )]
+        attribute_line_ids = [(5, )]
         for attribute in record['custom_attributes']:
             mattribute = attribute_binder.to_internal(attribute['attribute_code'], unwrap=False, external_field='attribute_code')
             if mattribute.create_variant == 'no_variant':
@@ -162,10 +164,16 @@ class ProductImportMapper(Component):
                 raise MappingError("The product attribute value %s in attribute %s is not imported." %
                                    (str(attribute['value']), mattribute.name))
             attribute_value_ids.append((4, mvalue.odoo_id.id))
+            # Also create an attribute.line.value entrie here
+            attribute_line_ids.append((0, 0, {
+                'attribute_id': mattribute.odoo_id.id,
+                'value_ids': [(6, 0, [mvalue.odoo_id.id])],
+            }))
         return {
             'attribute_value_ids': attribute_value_ids,
+            'attribute_line_ids': attribute_line_ids,
         }
-        
+
     @mapping
     def type(self, record):
         if record['type_id'] == 'simple':
@@ -379,6 +387,7 @@ class ProductImporter(Component):
             # Name is set on product template on configurables
             if 'name' in data:
                 del data['name']
+        _logger.info("Data: %s", data)
         super(ProductImporter, self)._update(binding, data)
         return
 

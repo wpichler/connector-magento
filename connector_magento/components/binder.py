@@ -39,7 +39,6 @@ class MagentoModelBinder(Component):
         'magento.product.attributes.group',
         'magento.product.attribute.value',
         'magento.template.attribute.line',
-        'magento.stock.warehouse',
         'magento.stock.picking',
         'magento.stock.item',
         'magento.sale.order',

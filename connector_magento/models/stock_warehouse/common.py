@@ -7,6 +7,7 @@ from odoo import api, models, fields
 from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
+from odoo import tools
 
 _logger = logging.getLogger(__name__)
 
@@ -73,3 +74,35 @@ class StockWarehouse(models.Model):
         inverse_name='odoo_id',
         string="Magento Bindings",
     )
+
+
+class MagentoStockWarehouseBinder(Component):
+    _name = 'magento.stock.warehouse.binder'
+    _inherit = 'magento.binder'
+    _apply_on = 'magento.stock.warehouse'
+    _external_field = 'external_id'
+
+    def to_internal(self, external_id, unwrap=False, external_field=None):
+        """
+        I have no idea why this is necessary - but under some conditions the access rights did not returned the binding
+        """
+        if not external_field:
+            bindings = self.model.sudo().with_context(active_test=False).search(
+                [(self._external_field, '=', tools.ustr(external_id)),
+                 (self._backend_field, '=', self.backend_record.id)]
+            )
+        else:
+            bindings = self.model.sudo().with_context(active_test=False).search(
+                [(external_field, '=', tools.ustr(external_id)),
+                 (self._backend_field, '=', self.backend_record.id)]
+            )
+        if not bindings:
+            if unwrap:
+                return self.model.sudo().browse()[self._odoo_field]
+            return self.model.browse()
+        if len(bindings) > 1:
+            _logger.error("Got %s bindings for %s with value %s", len(bindings), external_field, external_id)
+        bindings.ensure_one()
+        if unwrap:
+            bindings = bindings[self._odoo_field]
+        return bindings

@@ -40,12 +40,16 @@ class MagentoProductCategoryExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
+        if not hasattr(record, "magento_bind_ids"):
+            return
         for binding in record.magento_bind_ids:
             if binding.backend_id.product_synchro_strategy == 'magento_first': 
                 continue
             binding.with_delay(identity_key=identity_exact).export_record(binding.backend_id)
 
     def on_record_unlink(self, record):
+        if not hasattr(record, "magento_bind_ids"):
+            return
         for binding in record.magento_bind_ids:
             if binding.backend_id.product_synchro_strategy == 'magento_first': 
                 continue

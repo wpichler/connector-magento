@@ -138,7 +138,7 @@ class ProductTemplateImporter(Component):
         self._import_category_positions(binding)
         # Do import stock item
         self._import_stock(binding)
-        if self.backend_record.product_syncro_strategy == 'odoo_first':
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
             return
         # Import Images
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
