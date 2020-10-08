@@ -77,7 +77,7 @@ class MagentoProductImageExportListener(Component):
                     b.type != 'product_image_ids' or (
                         b.magento_product_id.odoo_id != record.image_product_id
                         and
-                        b.magento_product_template_id.odoo_id != record.image_product_id.product_tmpl_id
+                        b.magento_product_tmpl_id.odoo_id != record.image_product_id.product_tmpl_id
                     )
                     ).unlink()
             # Export image for the template
