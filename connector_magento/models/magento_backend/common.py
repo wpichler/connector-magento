@@ -78,6 +78,14 @@ class MagentoBackend(models.Model):
         string='Active',
         default=True
     )
+    product_synchro_strategy = fields.Selection([
+            ('magento_first', 'Magento First'),
+            ('odoo_first', 'Odoo First'),
+        ],
+        string='Product Update Strategy',
+        help='Precise which strategy you want to update',
+        default='magento_first'
+    )
     state = fields.Selection(
         selection='_select_state',
         string='State',

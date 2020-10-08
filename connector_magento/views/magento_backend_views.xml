@@ -479,6 +479,7 @@
 								</group>
 								<group string="Import Options">
 									<field name="default_category_id" />
+									<field name="product_synchro_strategy" />
 									<field name="auto_create_category_on_import" />
                                     
 									<!-- <field name="default_lang_id" widget="selection" /> -->

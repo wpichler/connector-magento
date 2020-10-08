@@ -33,14 +33,6 @@ class MagentoBackend(models.Model):
                                'magento.product.product'):
                 self.env[model_name].search([('backend_id', '=', backend.id)]).with_delay(identity_key=identity_exact).sync_to_magento()
 
-    product_synchro_strategy = fields.Selection([
-            ('magento_first', 'Magento First'),
-            ('odoo_first', 'Odoo First'),
-        ],
-        string='Product Update Strategy',
-        help='Precise which strategy you want to update',
-        default='magento_first'
-    )
     export_products_from_date = fields.Datetime(
         string='Export products from date',
     )
