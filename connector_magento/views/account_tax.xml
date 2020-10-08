@@ -10,7 +10,7 @@
 			<field name="arch" type="xml">
 				<notebook position="inside">
 					<page string="Magento" name="magento">
-						<group string="Magento Template Bindings">
+						<group string="Magento Bindings">
 							<field name="magento_bind_ids" nolabel="1">
 								<tree>
 									<field name="backend_id" />
@@ -39,6 +39,8 @@
 							<field name="backend_id" />
 							<field name="class_name" readonly="1"/>
 							<field name="odoo_id" />
+							<field name="product_tax_ids" widget="many2many_tags"/>
+							<field name="product_tax_purchase_ids" widget="many2many_tags"/>
 							<field name="external_id" readonyl="1"/>
 						</group>
 					</sheet>
@@ -57,6 +59,8 @@
 					<field name="class_name"/>
 					<field name="odoo_id" />
 					<field name="external_id"/>
+					<field name="product_tax_ids" widget="many2many_tags"/>
+					<field name="product_tax_purchase_ids" widget="many2many_tags"/>
 				</tree>
 			</field>
 		</record>

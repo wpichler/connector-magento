@@ -132,14 +132,25 @@ class ProductImportMapper(Component):
         if not tax_attribute:
             return {}
         binder = self.binder_for('magento.account.tax')
-        tax = binder.to_internal(tax_attribute[0]['value'], unwrap=True)
+        mtax = binder.to_internal(tax_attribute[0]['value'], unwrap=False)
         if int(tax_attribute[0]['value']) == 0:
             return {}
-        if not tax:
+        if not mtax:
             raise MappingError("The tax class with the id %s "
                                "is not imported." %
                                tax_attribute[0]['value'])
-        return {'taxes_id': [(4, tax.id)]}
+        if not mtax.odoo_id:
+            raise MappingError("The tax class with the id %s "
+                               "is not mapped to an odoo tax." %
+                               tax_attribute[0]['value'])
+        data = {}
+        if mtax.product_tax_ids:
+            data.update({'taxes_id': [(6, 0, mtax.product_tax_ids.ids)]})
+        else:
+            data.update({'taxes_id': [(4, mtax.odoo_id.id)]})
+        if mtax.product_tax_purchase_ids:
+            data.update({'supplier_taxes_id': [(6, 0, mtax.product_tax_purchase_ids.ids)]})
+        return data
 
     @mapping
     def attributes(self, record):

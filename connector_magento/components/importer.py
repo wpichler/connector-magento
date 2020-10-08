@@ -36,9 +36,9 @@ class MagentoImporter(AbstractComponent):
         self.external_id = None
         self.magento_record = None
 
-    def _get_magento_data(self, binding=None):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
-        return self.backend_adapter.read(self.external_id, binding=binding)
+        return self.backend_adapter.read(self.external_id, kwargs)
 
     def _before_import(self):
         """ Hook called before the import, when we have the Magento
@@ -148,7 +148,7 @@ class MagentoImporter(AbstractComponent):
 
     def _create(self, data):
         """ Create the OpenERP record """
-        # special check on data before import
+        # special check on data befoe import
         self._validate_data(data)
         model = self.model.sudo().with_context(connector_no_export=True, lang=self.backend_record.default_lang_id.code if self.backend_record.default_lang_id else None)
         binding = model.create(data)
@@ -174,7 +174,7 @@ class MagentoImporter(AbstractComponent):
         """ Hook after we got magento record """
         return
 
-    def run(self, external_id, force=False, binding=None):
+    def run(self, external_id, force=False, **kwargs):
         """ Run the synchronization
 
         :param external_id: identifier of the record on Magento
@@ -196,14 +196,14 @@ class MagentoImporter(AbstractComponent):
 
         if not isinstance(external_id, dict):
             try:
-                self.magento_record = self._get_magento_data(binding)
+                self.magento_record = self._get_magento_data(**kwargs)
             except IDMissingInBackend:
                 return _('Record does no longer exist in Magento')
         self._preprocess_magento_record()
         skip = self._must_skip()
         if skip:
             return skip
-
+        binding = kwargs.get('binding', None)
         if not binding:
             binding = self._get_binding()
 
@@ -224,10 +224,10 @@ class MagentoImporter(AbstractComponent):
         map_record = self._map_data()
 
         if binding:
-            record = self._update_data(map_record, binding=binding)
+            record = self._update_data(map_record, **kwargs)
             self._update(binding, record)
         else:
-            record = self._create_data(map_record)
+            record = self._create_data(map_record, **kwargs)
             binding = self._create(record)
 
         self.binder.bind(self.external_id, binding)

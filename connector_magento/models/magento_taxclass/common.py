@@ -2,11 +2,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
-import xmlrpc.client
 from odoo import models, fields
-from odoo.addons.connector.exception import IDMissingInBackend
 from odoo.addons.component.core import Component
-from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 
 _logger = logging.getLogger(__name__)
 
@@ -21,6 +18,8 @@ class MagentoTaxClass(models.Model):
                               string='Tax',
                               required=True,
                               ondelete='restrict')
+    product_tax_ids = fields.Many2many(comodel_name="account.tax", string="Product Sale Tax Ids", domain=[('type_tax_use', '=', 'sale')])
+    product_tax_purchase_ids = fields.Many2many(comodel_name="account.tax", string="Product Purchase Tax Ids", domain=[('type_tax_use', '=', 'purchase')])
     class_name = fields.Char('Magento Class Name')
     class_type = fields.Selection([
         ('PRODUCT', 'Product'),

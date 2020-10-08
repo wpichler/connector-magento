@@ -26,7 +26,6 @@ class AccountTaxBatchImporter(Component):
 
             importer = self.component(usage='record.importer')
             mclasses = self.backend_adapter.search()
-
             for class_id in mclasses:
                 importer.run(class_id)
 
@@ -36,14 +35,13 @@ class AccountTaxImporter(Component):
     _inherit = 'magento.importer'
     _apply_on = ['magento.account.tax']
 
-    def _is_uptodate(self, binding):
-        # TODO: Remove for production
-        return False
-
     def _create(self, data):
         binding = super(AccountTaxImporter, self)._create(data)
         self.backend_record.add_checkpoint(binding)
         return binding
+
+    def run(self, external_id, force=False, **kwargs):
+        return super(AccountTaxImporter, self).run(external_id, force=force, **kwargs)
 
 
 class AccountTaxImportMapper(Component):
@@ -60,7 +58,9 @@ class AccountTaxImportMapper(Component):
     @mapping
     def odoo_id(self, record):
         # Just use the first tax class - user has to rework it in checkpoint !
-        return {'odoo_id': self.env['account.tax'].search([], limit=1).id}
+        return {
+            'odoo_id': self.env['account.tax'].search([], limit=1).id,
+        }
 
     @mapping
     def backend_id(self, record):

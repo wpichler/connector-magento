@@ -55,7 +55,7 @@ class ProductProductExporter(Component):
             sku = slugify(name, to_lower=True)[0:64]
         return sku
 
-    def _create_data(self, map_record, fields=None, **kwargs):
+    def _create_data(self, map_record, **kwargs):
         # Here we do generate a new default code is none exists for now
         if 'magento.product.product' in self._apply_on and not self.binding.external_id:
             sku = self._get_sku_proposal()
@@ -71,7 +71,7 @@ class ProductProductExporter(Component):
             if not self.binding.default_code:
                 self.binding.with_context(connector_no_export=True).default_code = sku
             '''
-        return super(ProductProductExporter, self)._create_data(map_record, fields=fields, **kwargs)
+        return super(ProductProductExporter, self)._create_data(map_record, **kwargs)
 
     def _create(self, data):
         """ Create the Magento record """

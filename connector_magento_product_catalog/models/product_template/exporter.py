@@ -44,7 +44,7 @@ class ProductTemplateDefinitionExporter(Component):
             sku = slugify(self.binding.display_name, to_lower=True)[0:64]
         return sku
 
-    def _create_data(self, map_record, fields=None, **kwargs):
+    def _create_data(self, map_record, **kwargs):
         # Here we do generate a new default code is none exists for now
         if not self.binding.external_id:
             sku = self._get_sku_proposal()
@@ -55,7 +55,7 @@ class ProductTemplateDefinitionExporter(Component):
                 i += 1
                 _logger.info("Try next sku: %s", sku)
             self.binding.with_context(connector_no_export=True).external_id = sku
-        return super(ProductTemplateDefinitionExporter, self)._create_data(map_record, fields=fields, **kwargs)
+        return super(ProductTemplateDefinitionExporter, self)._create_data(map_record, **kwargs)
 
     def _update_binding_record_after_create(self, data):
         """
