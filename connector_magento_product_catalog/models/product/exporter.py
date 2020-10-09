@@ -350,7 +350,7 @@ class ProductProductExporter(Component):
             self.env['magento.product.media'].search([
                 ('external_id', 'in', odoo_delete_ids),
                 ('backend_id', '=', self.backend_record.id),
-            ]).with_context(connector_no_export=True).unlink()
+            ]).with_context(connector_no_export=True).sudo().unlink()
         # Check for main image
         self._check_one_image_main()
 

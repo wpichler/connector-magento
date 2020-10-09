@@ -8,7 +8,6 @@ from odoo.addons.connector.components.mapper import mapping, only_create
 import os.path
 import logging
 from odoo.addons.connector_magento.components.backend_adapter import MagentoNotFoundError
-import uuid
 
 _logger = logging.getLogger(__name__)
 
@@ -58,11 +57,6 @@ class ProductMediaExporter(Component):
         else:
             return False
 
-    def _update_filename(self):
-        base = os.path.basename(self.binding.file)
-        (filename, ext) = os.path.splitext(base)
-        self.binding.with_context(connector_no_export=True).file = "%s-%s%s" % (filename, str(uuid.uuid4())[:8], ext)
-
     def _run(self, fields=None):
         """ Flow of the synchronization, implemented in inherited classes"""
         assert self.binding
@@ -85,7 +79,7 @@ class ProductMediaExporter(Component):
         if self.external_id:
             if not fields or 'image' in fields:
                 # We have to delete old images first - then create new images - so we need create data
-                self._update_filename()
+                self.binding.recalc_filename()
                 record = self._create_data(map_record, fields=fields)
             else:
                 record = self._update_data(map_record, fields=fields)

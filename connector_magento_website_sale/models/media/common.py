@@ -15,6 +15,13 @@ _logger = logging.getLogger(__name__)
 class MagentoProductMedia(models.Model):
     _inherit = 'magento.product.media'
 
+    @api.depends('type', 'magento_product_id', 'magento_product_tmpl_id', 'odoo_id')
+    def _get_local_image(self):
+        media_ids = self.filtered(lambda m: m.type in ('product_image_ids', 'attribute_image'))
+        super(MagentoProductMedia, self.filtered(lambda m: m.type not in ('product_image_ids', 'attribute_image')))._get_local_image()
+        for media in media_ids:
+            media.local_image = media.image_image
+
     odoo_id = fields.Many2one('product.image', string="Product Image")
     image_image = fields.Binary(related='odoo_id.image')
 

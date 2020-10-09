@@ -8,12 +8,13 @@ from odoo.exceptions import MissingError
 from odoo.addons.component.core import Component
 import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
-import base64
 import uuid
 import requests
 from odoo.addons.queue_job.job import identity_exact
 from odoo.addons.queue_job.job import job, related_action
 from slugify import slugify
+import magic
+import base64
 
 
 _logger = logging.getLogger(__name__)
@@ -41,6 +42,12 @@ class MagentoProductMedia(models.Model):
             except Exception as e:
                 _logger.error("Got Exception %s while trying to fetch image on %s", e, media.url)
 
+    @api.depends('type', 'magento_product_id', 'magento_product_tmpl_id')
+    def _get_local_image(self):
+        for media in self:
+            if media.type == 'product_image':
+                media.local_image = media.p_image if media.magento_product_id else media.pt_image
+
     magento_product_id = fields.Many2one(comodel_name='magento.product.product',
                                          string='Magento Product',
                                          required=False,
@@ -60,6 +67,7 @@ class MagentoProductMedia(models.Model):
     file = fields.Char(string="File", required=True)
     url = fields.Char(string="URL", compute='_compute_url', store=False)
     image = fields.Binary(string="Image", compute='_get_image')
+    local_image = fields.Binary(string="Image", compute='_get_local_image')
     position = fields.Integer(string="Position", default=0)
     disabled = fields.Boolean(string="Disabled", default=False)
     mimetype = fields.Char(string="Mimetype", required=True, default='image/jpeg')
@@ -100,7 +108,7 @@ class MagentoProductMedia(models.Model):
     def get_unique_filename(self, image, backend_id, mimetype):
         extension = 'png' if mimetype == 'image/png' else 'jpeg'
         # Find unique filename
-        filename = "%s.%s" % (slugify(image.base_product_tmpl_id.name, to_lower=True),  extension)
+        filename = "%s-%s.%s" % (slugify(image.base_product_tmpl_id.name, to_lower=True), str(uuid.uuid4())[:8], extension)
         i = 0
         while self.env['magento.product.media'].search_count([
             ('backend_id', '=', backend_id.id),
@@ -109,6 +117,27 @@ class MagentoProductMedia(models.Model):
             filename = "%s-%s.%s" % (slugify(image.base_product_tmpl_id.name, to_lower=True), i, extension)
             i += 1
         return filename
+
+    @api.multi
+    def recalc_filename(self):
+        mime = magic.Magic(mime=True)
+        for media in self:
+            mimetype = mime.from_buffer(base64.b64decode(media.local_image))
+            extension = 'png' if mimetype == 'image/png' else 'jpeg'
+            # Find unique filename
+            basename = media.magento_product_id.name if media.magento_product_id else media.magento_product_tmpl_id.name
+            filename = "%s-%s.%s" % (slugify(basename, to_lower=True), str(uuid.uuid4())[:8], extension)
+            i = 0
+            while self.env['magento.product.media'].search_count([
+                ('backend_id', '=', media.backend_id.id),
+                ('file', '=', filename)
+            ]) > 0:
+                filename = "%s-%s.%s" % (slugify(basename, to_lower=True), i, extension)
+                i += 1
+            media.with_context(connector_no_export=True).update({
+                'file': filename,
+                'mimetype': mimetype,
+            })
 
     @job(default_channel='root.magento.image', retry_pattern={
         1: 1 * 60,
