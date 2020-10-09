@@ -8,13 +8,13 @@ from odoo.addons.connector.components.mapper import mapping, only_create
 class MagentoStockItemImporter(Component):
     _inherit = 'magento.stock.item.importer'
 
-    def _get_magento_data(self, binding=None):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
         if '|' in self.external_id:
             (source_code, sku) = self.external_id.split('|')
             return self.backend_adapter.msi_read(source_code, sku)
         else:
-            return super(MagentoStockItemImporter, self)._get_magento_data(binding)
+            return super(MagentoStockItemImporter, self)._get_magento_data(**kwargs)
 
     def _must_skip(self):
         return False if self.magento_record else True

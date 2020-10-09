@@ -403,13 +403,13 @@ class AddressImporter(Component):
             self.address_infos = address_infos
         return super(AddressImporter, self).run(external_id, force=force)
 
-    def _get_magento_data(self, binding=None):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
         # we already read the data from the Partner Importer
         if self.address_infos.magento_record:
             return self.address_infos.magento_record
         else:
-            return super(AddressImporter, self)._get_magento_data(binding)
+            return super(AddressImporter, self)._get_magento_data(**kwargs)
 
     def _define_partner_relationship(self, data):
         """ Link address with partner or parent company. """

@@ -313,9 +313,9 @@ class TranslationImporter(Component):
     _inherit = 'magento.importer'
     _usage = 'translation.importer'
 
-    def _get_magento_data(self, storeview_code=None, binding=None):
+    def _get_magento_data(self, **kwargs):
         """ Return the raw Magento data for ``self.external_id`` """
-        return self.backend_adapter.read(self.external_id, storeview_code=storeview_code)
+        return self.backend_adapter.read(self.external_id, **kwargs)
 
     def run(self, external_id, binding, mapper=None):
         self.external_id = external_id
