@@ -116,6 +116,9 @@ class ProductProductExporter(Component):
         :param data:
         :return:
         """
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            self.external_id = data['sku']
+            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
         # Do use the importer to update the binding
@@ -123,7 +126,6 @@ class ProductProductExporter(Component):
                                   model_name='magento.product.product')
         _logger.info("Do update record with: %s", data)
         importer.run(data, force=True, binding=self.binding.sudo())
-        self.external_id = data['sku']
 
     def _update_binding_record_after_create(self, data):
         """
@@ -131,6 +133,9 @@ class ProductProductExporter(Component):
         :param data:
         :return:
         """
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            self.external_id = data['sku']
+            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
         # Do use the importer to update the binding
@@ -279,6 +284,54 @@ class ProductProductExporter(Component):
             iids.append(image.external_id)
         return iids
 
+    def _check_one_image_main(self):
+        def sort_by_position(elem):
+            return elem.position
+
+        type_image_ids = self.binding.magento_image_bind_ids.filtered(lambda i: i.image_type_image)
+        if type_image_ids:
+            return
+        found = False
+        for image in self.binding.magento_image_bind_ids.sorted(key=sort_by_position):
+            if hasattr(image, 'odoo_id') and image.odoo_id and hasattr(image.odoo_id, 'is_primary_image') and image.odoo_id.is_primary_image:
+                image.update({
+                    'image_type_image': True,
+                    'image_type_small_image': True,
+                    'image_type_thumbnail': True,
+                    'image_type_swatch': True,
+                })
+                found = True
+                break
+        if not found:
+            for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.type == 'product_image').sorted(key=sort_by_position):
+                image.update({
+                    'image_type_image': True,
+                    'image_type_small_image': True,
+                    'image_type_thumbnail': True,
+                    'image_type_swatch': True,
+                })
+                found = True
+                break
+        if not found:
+            for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.type == 'product_image_ids').sorted(key=sort_by_position):
+                image.update({
+                    'image_type_image': True,
+                    'image_type_small_image': True,
+                    'image_type_thumbnail': True,
+                    'image_type_swatch': True,
+                })
+                found = True
+                break
+        if not found:
+            for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.type == 'attribute_image').sorted(key=sort_by_position):
+                image.update({
+                    'image_type_image': True,
+                    'image_type_small_image': True,
+                    'image_type_thumbnail': True,
+                    'image_type_swatch': True,
+                })
+                break
+
     def _sync_images(self):
         '''
         Do delete images which are on magento side - but not on odoo side
@@ -298,6 +351,8 @@ class ProductProductExporter(Component):
                 ('external_id', 'in', odoo_delete_ids),
                 ('backend_id', '=', self.backend_record.id),
             ]).with_context(connector_no_export=True).unlink()
+        # Check for main image
+        self._check_one_image_main()
 
     def _after_export(self):
         self._sync_images()

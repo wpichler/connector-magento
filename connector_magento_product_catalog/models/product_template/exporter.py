@@ -17,7 +17,7 @@ class ProductTemplateDefinitionExporter(Component):
     _name = 'magento.product.template.exporter'
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
-    _variant_update_fields = ['export_base_image', 'list_price', 'name']
+    _variant_update_fields = ['export_base_image', 'list_price', 'name', 'website_meta_description']
     _image_update_fields = ['attribute_line_ids']
 
     def _sku_inuse(self, sku):
@@ -63,6 +63,9 @@ class ProductTemplateDefinitionExporter(Component):
         :param data:
         :return:
         """
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            self.external_id = data['sku']
+            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
         # Do use the importer to update the binding
@@ -73,6 +76,8 @@ class ProductTemplateDefinitionExporter(Component):
         self.external_id = data['sku']
 
     def _update_binding_record_after_write(self, data):
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            return False
         _logger.info("Got result data: %s", data)
 
     def _must_update_variants(self):
@@ -119,7 +124,8 @@ class ProductTemplateDefinitionExporter(Component):
         """ Export the dependencies for the record"""
         super(ProductTemplateDefinitionExporter, self)._export_dependencies()
         self._create_attribute_lines()
-        self._export_variants()
+        if self.update_variants and self.external_id:
+            self._export_variants()
         return
 
     def _after_export(self):

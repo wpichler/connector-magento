@@ -28,7 +28,7 @@ class MagentoProductMedia(models.Model):
     @api.depends('backend_id', 'file')
     def _compute_url(self):
         for media in self:
-            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product%s" % media.file)
+            media.url = urljoin(media.backend_id.location, "/pub/media/catalog/product/%s" % media.file)
 
     @api.depends('url')
     def _get_image(self):

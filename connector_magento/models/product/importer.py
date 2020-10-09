@@ -442,6 +442,9 @@ class ProductImporter(Component):
             bundle_importer.run(binding, self.magento_record)
 
     def _do_media_import(self, binding):
+        def sort_by_position(elem):
+            return elem.position
+
         media_importer = self.component(usage='product.media.importer', model_name='magento.product.media')
         mids = []
         for media in self.magento_record['media_gallery_entries']:
