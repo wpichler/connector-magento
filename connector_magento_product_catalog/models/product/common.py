@@ -75,6 +75,19 @@ class ProductProductAdapter(Component):
                 }, http_method="post")
             return res
 
+    def update_product_links(self, sku, items):
+        def escape(term):
+            if isinstance(term, str):
+                return urllib.parse.quote(term.encode('utf-8'), safe='')
+            return term
+
+        if self.work.magento_api._location.version == '2.0':
+            res = self._call('products/%s/links' % escape(sku), {
+                "items": items
+            }, http_method="post")
+            _logger.info("Got result for items: %s.", res)
+            return res
+
     def get_media(self, sku):
         if self.work.magento_api._location.version == '2.0':
             return self._call('products/%s/media' % sku, http_method="get")
