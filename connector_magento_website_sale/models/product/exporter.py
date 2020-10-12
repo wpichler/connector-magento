@@ -4,9 +4,6 @@
 
 
 from odoo.addons.component.core import Component
-from slugify import slugify
-import magic
-import base64
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -14,6 +11,44 @@ _logger = logging.getLogger(__name__)
 
 class ProductProductExporter(Component):
     _inherit = 'magento.product.product.exporter'
+
+    def _export_product_links_dependencies(self):
+        record = self.binding
+        for template in record.alternative_product_ids:
+            if template.product_variant_count > 1:
+                binding = template.magento_template_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            else:
+                binding = template.product_variant_id.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            if not binding or not binding.external_id:
+                if template.product_variant_count > 1:
+                    self._export_dependency(template, "magento.product.template")
+                else:
+                    self._export_dependency(template.product_variant_id, "magento.product.product")
+
+    def _export_product_links(self):
+        # TODO: Refactor this to use a real mapping and exporter class
+        record = self.binding
+        a_products = []
+        position = 1
+        for template in record.alternative_product_ids:
+            if template.product_variant_count > 1:
+                binding = template.magento_template_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            else:
+                binding = template.product_variant_id.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            if not binding or not binding.external_id:
+                _logger.info("No binding / No external id on binding for linked product %s", template.display_name)
+                continue
+            if binding and binding.external_id:
+                a_products.append({
+                    "sku": record.external_id,
+                    "link_type": "related",
+                    "linked_product_sku": binding.external_id,
+                    "linked_product_type": "configurable",
+                    "position": position,
+                })
+                position += 1
+        if a_products:
+            self.backend_adapter.update_product_links(record.external_id, a_products)
 
     def _export_categories(self):
         """ Export the dependencies for the record"""
@@ -48,10 +83,15 @@ class ProductProductExporter(Component):
     def _export_images(self):
         pass
 
+    def _export_dependencies(self):
+        super(ProductProductExporter, self)._export_dependencies()
+        self._export_product_links_dependencies()
+
     def _after_export(self):
         """ Export the dependencies for the record"""
         super(ProductProductExporter, self)._after_export()
         self._export_images()
+        self._export_product_links()
         return
 
 
