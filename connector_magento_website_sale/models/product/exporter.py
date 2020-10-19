@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 class ProductProductExporter(Component):
     _inherit = 'magento.product.product.exporter'
 
+    '''
     def _export_product_links_dependencies(self):
         record = self.binding
         for template in record.alternative_product_ids:
@@ -19,11 +20,15 @@ class ProductProductExporter(Component):
                 binding = template.magento_template_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
             else:
                 binding = template.product_variant_id.magento_bind_ids.filtered(lambda bc: bc.backend_id.id == record.backend_id.id)
+            if binding and len(binding) > 1:
+                _logger.error("More than 1 binding for this template %s", template.name)
+                raise Exception("More than 1 binding for this template %s", template.name)
             if not binding or not binding.external_id:
                 if template.product_variant_count > 1:
                     self._export_dependency(template, "magento.product.template")
                 else:
                     self._export_dependency(template.product_variant_id, "magento.product.product")
+    '''
 
     def _export_product_links(self):
         # TODO: Refactor this to use a real mapping and exporter class
@@ -43,7 +48,7 @@ class ProductProductExporter(Component):
                     "sku": record.external_id,
                     "link_type": "related",
                     "linked_product_sku": binding.external_id,
-                    "linked_product_type": "configurable",
+                    "linked_product_type": "configurable" if template.product_variant_count > 1 else 'simple',
                     "position": position,
                 })
                 position += 1
@@ -85,7 +90,7 @@ class ProductProductExporter(Component):
 
     def _export_dependencies(self):
         super(ProductProductExporter, self)._export_dependencies()
-        self._export_product_links_dependencies()
+        #self._export_product_links_dependencies()
 
     def _after_export(self):
         """ Export the dependencies for the record"""

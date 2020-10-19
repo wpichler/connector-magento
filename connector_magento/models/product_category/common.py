@@ -22,7 +22,7 @@ class MagentoProductPosition(models.Model):
     _order = 'position asc'
     _rec_name = "name"
 
-    @api.depends('magento_product_category_id', 'product_template_id')
+    @api.depends('magento_product_category_id', 'product_template_id', 'position')
     def _compute_name(self):
         for position in self:
             position.name = "%s in category %s on position %s" % (position.product_template_id.display_name, position.magento_product_category_id.magento_name, position.position)

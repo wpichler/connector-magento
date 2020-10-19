@@ -132,6 +132,9 @@ class ProductCategoryImporter(Component):
     def _update(self, binding, data):
         return super(ProductCategoryImporter, self)._update(binding, data)
 
+    def _check_product_category(self, binding, template):
+        pass
+
     def _import_categorie_product_positions(self, binding):
         product_links = self.backend_adapter.get_assigned_product(self.external_id)
         _logger.info("Got product links: %s", product_links)
@@ -153,15 +156,16 @@ class ProductCategoryImporter(Component):
                 ('magento_product_category_id', '=', binding.id),
             ])
             if not position:
-                self.env['magento.product.position'].create({
+                self.env['magento.product.position'].with_context(connector_no_export=True).create({
                     'product_template_id': template.id,
                     'magento_product_category_id': binding.id,
                     'position': category_link['position'],
                 })
             else:
-                position.update({
+                position.with_context(connector_no_export=True).update({
                     'position': category_link['position'],
                 })
+            self._check_product_category(binding, template)
 
     def _after_import(self, binding):
         """ Hook called at the end of the import """
@@ -198,6 +202,7 @@ class ProductCategoryImportMapper(Component):
         return {'backend_id': self.backend_record.id}
 
     @mapping
+    @only_create
     def odoo_id(self, record):
         binder = self.binder_for()
         categ_id = binder.to_internal(record['id'])

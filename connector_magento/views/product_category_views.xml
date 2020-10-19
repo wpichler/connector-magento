@@ -42,7 +42,7 @@
                     </group>
                     <notebook>
                         <page name="product_position" string="Product Position">
-                            <button type="object" name="update_products" string="Produkte Aktualiseren"/>
+                            <button type="object" name="update_products" string="Produkte Aktualiseren"/><br/>
                             <label for="product_position_ids"/>
                             <field name="product_position_ids">
                                 <tree>

@@ -30,6 +30,12 @@ class MagentoProductCategory(models.Model):
         return result
 
     @api.multi
+    def _check_public_category_template_ids(self, tmpl_ids):
+        self.ensure_one()
+        for template in self.env['product.template'].search([('id', 'in', tmpl_ids), '!', ('public_categ_ids', 'child_of', self.public_categ_id.id)]):
+            _logger.info("Product %s does not have category %s set !", template.name, self.name)
+
+    @api.multi
     def update_products(self):
         '''
         We do need to overwrite this here complete
@@ -54,6 +60,8 @@ class MagentoProductCategory(models.Model):
             tmpl_ids.extend(mbundle.odoo_id.id for mbundle in mbundles if mbundle.odoo_id.id not in tmpl_ids)
             tmpl_ids.extend(mproduct.odoo_id.product_tmpl_id.id for mproduct in mproducts if mproduct.odoo_id.product_tmpl_id.id not in tmpl_ids)
             _logger.info("This product template ids are in this category: %s", tmpl_ids)
+            # Check all product templates - if public_categorie_ids does contain this categorie
+            mcategory._check_public_category_template_ids(tmpl_ids)
             # Get list of ids already with position entry
             pt_ids = {}
             for pp in mcategory.product_position_ids:
@@ -74,7 +82,7 @@ class MagentoProductCategory(models.Model):
                 ppids.append((3, pt_ids[tmpl_id]))
             if ppids:
                 mcategory.with_context(connector_no_export=True).product_position_ids = ppids
-                mcategory.with_delay(identity_key=('magento_product_category_position_%s'%mcategory.id)).update_positions()
+                #mcategory.with_delay(identity_key=('magento_product_category_position_%s' % mcategory.id)).update_positions()
 
 
 class ProductCategory(models.Model):

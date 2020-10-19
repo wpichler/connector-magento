@@ -48,8 +48,8 @@ class MagentoProductTemplate(models.Model):
         """ Export the attributes configuration of a product. """
         self.ensure_one()
         with self.backend_id.work_on(self._name, storeview_id=storeview_id) as work:
-                exporter = work.component(usage='record.exporter')
-                return exporter.run(self)
+            exporter = work.component(usage='record.exporter')
+            return exporter.run(self)
 
 
 class ProductTemplateAdapter(Component):

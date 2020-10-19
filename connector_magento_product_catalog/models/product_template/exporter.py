@@ -63,11 +63,18 @@ class ProductTemplateDefinitionExporter(Component):
         :param data:
         :return:
         """
-        if self.backend_record.product_synchro_strategy == 'odoo_first':
-            self.external_id = data['sku']
-            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            mapper = self.component(
+                usage='record.update.create',
+                model_name='magento.product.template'
+            )
+            map_record = mapper.map_record(data)
+            update_data = map_record.values(binding=self.binding)
+            _logger.info("Got Update data: %s", update_data)
+            self.binding.with_context(connector_no_export=True).update(update_data)
+            return False
         # Do use the importer to update the binding
         importer = self.component(usage='record.importer',
                                 model_name='magento.product.template')
@@ -76,7 +83,17 @@ class ProductTemplateDefinitionExporter(Component):
         self.external_id = data['sku']
 
     def _update_binding_record_after_write(self, data):
+        for attr in data.get('custom_attributes', []):
+            data[attr['attribute_code']] = attr['value']
         if self.backend_record.product_synchro_strategy == 'odoo_first':
+            mapper = self.component(
+                usage='record.update.write',
+                model_name='magento.product.template'
+            )
+            map_record = mapper.map_record(data)
+            update_data = map_record.values(binding=self.binding)
+            _logger.info("Got Update data: %s", update_data)
+            self.binding.with_context(connector_no_export=True).update(update_data)
             return False
         _logger.info("Got result data: %s", data)
 
@@ -99,7 +116,12 @@ class ProductTemplateDefinitionExporter(Component):
                 })
                 created = True
             if self._must_update_variants() or created or not m_prod.external_id:
-                variant_exporter.run(m_prod)
+                if created or not m_prod.external_id:
+                    _logger.info("Do export variant: %s", m_prod)
+                    variant_exporter.run(m_prod)
+                else:
+                    _logger.info("Do queue export variant: %s", m_prod)
+                    m_prod.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run_sync_to_magento()
 
     def _create_attribute_lines(self):
         record = self.binding
@@ -141,12 +163,14 @@ class ProductTemplateDefinitionExporter(Component):
         '''
 
     def run(self, binding, fields=None):
-        self.update_variants = False
+        self.update_variants = True
         if fields:
             self.update_variants = any(field in self._variant_update_fields for field in fields)
-        self.update_images = False
+        self.update_images = True
         if fields:
             self.update_images = any(field in self._image_update_fields for field in fields)
+        self.update_variants = True
+        self.update_images = True
         return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 

@@ -32,7 +32,10 @@ class ProductProductExporterPrice(Component):
         if not websites:
             websites = self.env['magento.website'].search([('backend_id', '=', self.binding.backend_id.id)])
         for website in websites:
-            price = product.with_context(pricelist=website.pricelist_id.id).price
+            if website.pricelist_id.discount_policy == 'with_discount':
+                price = product.with_context(pricelist=website.pricelist_id.id).price
+            else:
+                price = product['lst_price']
             if not website.store_ids or not website.store_ids[0].storeview_ids:
                 continue
             storeview = website.store_ids[0].storeview_ids[0]

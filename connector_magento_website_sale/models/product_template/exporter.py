@@ -17,7 +17,7 @@ class ProductTemplateDefinitionExporter(Component):
         listener = self.component(usage='event.listener',
                                   model_name='product.image')
         for image in self.binding.odoo_id.base_product_image_ids:
-            listener._check_create_binding(image, do_delay=False)
+            listener._check_create_binding(image, do_delay=True)
         super(ProductTemplateDefinitionExporter, self)._export_images()
 
 

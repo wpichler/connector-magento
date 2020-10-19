@@ -9,6 +9,8 @@ import logging
 from odoo import models, fields, api
 from odoo.addons.component.core import Component
 from odoo.addons.queue_job.job import job, related_action
+
+from odoo.models import NewId
 from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 import odoo.addons.decimal_precision as dp
 from urllib.parse import urljoin
@@ -52,6 +54,19 @@ class MagentoProductProduct(models.Model):
             binding.magento_product_category_ids = [mpp.magento_product_category_id.id for mpp in magento_product_position_ids]
             binding.magento_product_position_ids = magento_product_position_ids
 
+    def _inverse_product_category_positions(self):
+        for position in self.magento_product_position_ids:
+            if isinstance(position.id, NewId):
+                self.env['magento.product.position'].create({
+                    'product_template_id': position.product_template_id.id,
+                    'magento_product_category_id': position.magento_product_category_id.id,
+                    'position': position.position,
+                })
+            else:
+                self.env['magento.product.position'].browse(position.id).update({
+                    'position': position.position,
+                })
+
     odoo_id = fields.Many2one(comodel_name='product.product',
                               string='Product',
                               required=True,
@@ -92,6 +107,7 @@ class MagentoProductProduct(models.Model):
     magento_product_position_ids = fields.One2many(
         comodel_name='magento.product.position',
         compute='_compute_product_categories',
+        inverse='_inverse_product_category_positions',
         string='Product positions'
     )
     magento_product_category_ids = fields.One2many(

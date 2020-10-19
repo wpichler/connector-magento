@@ -116,11 +116,25 @@ class ProductProductExporter(Component):
         :param data:
         :return:
         """
-        if self.backend_record.product_synchro_strategy == 'odoo_first':
-            self.external_id = data['sku']
-            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            mapper = self.component(
+                usage='record.update.write',
+                model_name='magento.product.product'
+            )
+            map_record = mapper.map_record(data)
+            update_data = map_record.values(binding=self.binding)
+            _logger.info("Got Update data: %s", update_data)
+            self.binding.with_context(connector_no_export=True).update(update_data)
+            stock_importer = self.component(
+                usage='record.importer',
+                model_name='magento.stock.item'
+            )
+            stock_importer.run(data['extension_attributes']['stock_item'])
+            self.external_id = data['sku']
+            return False
+        # If not odoo_first - then make a full update
         # Do use the importer to update the binding
         importer = self.component(usage='record.importer',
                                   model_name='magento.product.product')
@@ -133,11 +147,24 @@ class ProductProductExporter(Component):
         :param data:
         :return:
         """
-        if self.backend_record.product_synchro_strategy == 'odoo_first':
-            self.external_id = data['sku']
-            return False
         for attr in data.get('custom_attributes', []):
             data[attr['attribute_code']] = attr['value']
+        if self.backend_record.product_synchro_strategy == 'odoo_first':
+            mapper = self.component(
+                usage='record.update.create',
+                model_name='magento.product.product'
+            )
+            map_record = mapper.map_record(data)
+            update_data = map_record.values(binding=self.binding)
+            _logger.info("Got Update data: %s", update_data)
+            self.binding.with_context(connector_no_export=True).update(update_data)
+            stock_importer = self.component(
+                usage='record.importer',
+                model_name='magento.stock.item'
+            )
+            stock_importer.run(data['extension_attributes']['stock_item'])
+            self.external_id = data['sku']
+            return False
         # Do use the importer to update the binding
         importer = self.component(usage='record.importer',
                                   model_name='magento.product.product')
@@ -332,11 +359,15 @@ class ProductProductExporter(Component):
                 })
                 break
 
+    def _delete_broken_image_bindings(self):
+        self.binding.magento_image_bind_ids.filtered(lambda i: not i.type).unlink()
+
     def _sync_images(self):
         '''
         Do delete images which are on magento side - but not on odoo side
         :return:
         '''
+        self._delete_broken_image_bindings()
         magento_ids = self._get_magento_image_ids()
         odoo_magento_ids = self._get_odoo_magento_image_ids()
         magento_delete_ids = [mid for mid in magento_ids if mid not in odoo_magento_ids]

@@ -11,6 +11,7 @@ import urllib.request, urllib.parse, urllib.error
 import odoo.addons.decimal_precision as dp
 from urllib.parse import urljoin
 from odoo.addons.queue_job.job import identity_exact
+from odoo.models import NewId
 
 
 _logger = logging.getLogger(__name__)
@@ -50,6 +51,19 @@ class MagentoProductTemplate(models.Model):
             binding.magento_product_category_ids = [mpp.magento_product_category_id.id for mpp in magento_product_position_ids]
             binding.magento_product_position_ids = magento_product_position_ids
 
+    def _inverse_product_category_positions(self):
+        for position in self.magento_product_position_ids:
+            if isinstance(position.id, NewId):
+                self.env['magento.product.position'].create({
+                    'product_template_id': position.product_template_id.id,
+                    'magento_product_category_id': position.magento_product_category_id.id,
+                    'position': position.position,
+                })
+            else:
+                self.env['magento.product.position'].browse(position.id).update({
+                    'position': position.position,
+                })
+
     attribute_set_id = fields.Many2one('magento.product.attributes.set',
                                        string='Attribute set')
 
@@ -87,6 +101,7 @@ class MagentoProductTemplate(models.Model):
     magento_product_position_ids = fields.One2many(
         comodel_name='magento.product.position',
         compute='_compute_product_categories',
+        inverse='_inverse_product_category_positions',
         string='Product positions'
     )
     magento_product_category_ids = fields.One2many(
