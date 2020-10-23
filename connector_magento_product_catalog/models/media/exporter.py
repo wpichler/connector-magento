@@ -34,6 +34,9 @@ class ProductMediaExporter(Component):
         assert self.external_id
         # We have to delete and recreate because of a bug in magento 2
         do_delete = 'content' in data
+        data_log = data.copy()
+        data_log['content'] = None
+        _logger.info("Image data: %s", data_log)
         if do_delete:
             try:
                 self.backend_adapter.delete((self.binding.external_id,

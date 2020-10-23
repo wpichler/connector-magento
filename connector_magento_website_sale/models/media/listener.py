@@ -6,6 +6,11 @@ from odoo.addons.component_event import skip_if
 import magic
 import base64
 import datetime
+import logging
+
+
+_logger = logging.getLogger(__name__)
+
 
 class MagentoProductImageExportListener(Component):
     _name = 'magento.product.image.export.listener'
@@ -13,6 +18,9 @@ class MagentoProductImageExportListener(Component):
     _apply_on = ['product.image']
 
     def _check_create_binding(self, record, do_delay=True):
+        def sort_by_position(elem):
+            return elem.position
+
         def create_binding(data, backend):
             mime = magic.Magic(mime=True)
             mimetype = mime.from_buffer(base64.b64decode(record.image))
@@ -49,6 +57,7 @@ class MagentoProductImageExportListener(Component):
                     }, magento_product_binding.backend_id)
 
         def export_one_template(template, type):
+            _logger.info("In export_one_template")
             magento_product_binding_ids = self.env['magento.product.template'].search([
                 ('odoo_id', '=', template.id),
             ])
@@ -68,6 +77,24 @@ class MagentoProductImageExportListener(Component):
                         'label': magento_product_binding.magento_name or magento_product_binding.name,
                     }, magento_product_binding.backend_id)
 
+        def remove_one_template(template, type):
+            _logger.info("In remove_one_template, %s", template)
+            magento_product_binding_ids = self.env['magento.product.template'].search([
+                ('odoo_id', '=', template.id),
+            ])
+            _logger.info("In remove_one_template %s", magento_product_binding_ids)
+            for magento_product_binding in magento_product_binding_ids:
+                # Create new binding if no matching binding found
+                matching_bindings = record.magento_bind_ids.filtered(
+                        lambda b:
+                        b.backend_id == magento_product_binding.backend_id and
+                        b.type == type and
+                        b.magento_product_tmpl_id == magento_product_binding
+                )
+                _logger.info("In Matching binding %s", matching_bindings)
+                if matching_bindings:
+                    matching_bindings.unlink()
+
         # Then to the variants
         if record.image_product_id:
             # There can only be one...
@@ -81,10 +108,14 @@ class MagentoProductImageExportListener(Component):
                     )
                     ).unlink()
             # Export image for the template
-            export_one_template(template=record.image_product_id.product_tmpl_id, type='product_image_ids')
+            if not hasattr(record, 'use_for_template') or (hasattr(record, 'use_for_template') and record.use_for_template):
+                export_one_template(template=record.image_product_id.product_tmpl_id, type='product_image_ids')
+            else:
+                remove_one_template(template=record.image_product_id.product_tmpl_id, type='product_image_ids')
             # Check on which backends target product is available
             export_one_variant(product=record.image_product_id, type='product_image_ids')
         elif record.attribute_value_id:
+            _logger.info("In product image attached to an attribute")
             # find all product variants where this value is set
             variants = record.base_product_tmpl_id.product_variant_ids.filtered(lambda v: record.attribute_value_id in v.attribute_value_ids)
             # Now find and delete all bindings which do not match any more
@@ -97,11 +128,29 @@ class MagentoProductImageExportListener(Component):
                     )
                     ).unlink()
             # Export image for the template
-            export_one_template(template=record.base_product_tmpl_id, type='attribute_image')
+            if not hasattr(record, 'use_for_template') or (hasattr(record, 'use_for_template') and record.use_for_template):
+                export_one_template(template=record.base_product_tmpl_id, type='attribute_image')
+            else:
+                remove_one_template(template=record.base_product_tmpl_id, type='attribute_image')
             for variant in variants:
                 # Export for Variant
                 export_one_variant(product=variant, type='attribute_image')
         # Here do now queue export of all related bindings
+        mtemplates = record.magento_bind_ids.mapped('magento_product_tmpl_id')
+        for mtemplate in mtemplates:
+            position = 1
+            for image in mtemplate.magento_image_bind_ids.sorted(key=sort_by_position):
+                if image.image_type_image:
+                    image.with_context(connector_no_export=True).update({
+                        'position': 0,
+                    })
+                else:
+                    image.with_context(connector_no_export=True).update({
+                        'position': position,
+                    })
+                    position += 1
+
+        _logger.info("Do create media: %s", record.magento_bind_ids)
         for binding in record.magento_bind_ids:
             key = "magento_product_media_%s_%s" % (binding.id, binding.backend_id.id, )
             eta = datetime.datetime.now() + datetime.timedelta(seconds=10)

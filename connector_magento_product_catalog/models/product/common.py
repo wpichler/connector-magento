@@ -9,7 +9,7 @@ from odoo.addons.queue_job.job import job, related_action
 from odoo.addons.queue_job.job import identity_exact
 import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
-
+from odoo.exceptions import MissingError
 
 _logger = logging.getLogger(__name__)
 
@@ -45,9 +45,12 @@ class MagentoProductProduct(models.Model):
     @job(default_channel='root.magento')
     def run_sync_to_magento(self):
         self.ensure_one()
-        with self.backend_id.work_on(self._name) as work:
-            exporter = work.component(usage='record.exporter')
-            return exporter.run(self)
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter')
+                return exporter.run(self)
+        except MissingError as e:
+            return True
 
 
 class ProductProductAdapter(Component):

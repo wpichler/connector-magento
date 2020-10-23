@@ -280,7 +280,7 @@ class ProductProductExporter(Component):
                 'label': self.binding.odoo_id.name,
                 'file': filename,
                 'type': 'product_image',
-                'position': 1,
+                'position': 0,
                 'mimetype': mimetype,
                 'image_type_image': True,
                 'image_type_small_image': True,
@@ -290,6 +290,7 @@ class ProductProductExporter(Component):
             mbinding.sudo().with_context(connector_no_export=True).update({
                 'label': self.binding.odoo_id.name,
                 'file': filename,
+                'position': 0,
                 'mimetype': mimetype,
                 'image_type_image': True,
                 'image_type_small_image': True,
@@ -307,7 +308,8 @@ class ProductProductExporter(Component):
 
     def _get_odoo_magento_image_ids(self):
         iids = []
-        for image in self.binding.magento_image_bind_ids:
+        # Only return images which are already exported from our side
+        for image in self.binding.magento_image_bind_ids.filtered(lambda i: i.external_id):
             iids.append(image.external_id)
         return iids
 
@@ -319,6 +321,19 @@ class ProductProductExporter(Component):
         if type_image_ids:
             return
         found = False
+        # Do recalc nice positions - to avoid duplicate positions
+        position = 1
+        for image in self.binding.magento_image_bind_ids.sorted(key=sort_by_position):
+            _logger.info("Do set new image position on %s to %s", self.binding, position)
+            if image.image_type_image:
+                image.with_context(connector_no_export=True).update({
+                    'position': 0,
+                })
+            else:
+                image.with_context(connector_no_export=True).update({
+                    'position': position,
+                })
+            position += 1
         for image in self.binding.magento_image_bind_ids.sorted(key=sort_by_position):
             if hasattr(image, 'odoo_id') and image.odoo_id and hasattr(image.odoo_id, 'is_primary_image') and image.odoo_id.is_primary_image:
                 image.update({
@@ -360,6 +375,7 @@ class ProductProductExporter(Component):
                 break
 
     def _delete_broken_image_bindings(self):
+        _logger.info("Do delete these broken image bindings: %s", self.binding.magento_image_bind_ids.filtered(lambda i: not i.type))
         self.binding.magento_image_bind_ids.filtered(lambda i: not i.type).unlink()
 
     def _sync_images(self):
@@ -378,6 +394,10 @@ class ProductProductExporter(Component):
         odoo_delete_ids = [mid for mid in odoo_magento_ids if mid not in magento_ids]
         # Delete bindings
         if odoo_delete_ids:
+            _logger.info("Do delete these image bindings which are not anymore on magento side: %s", self.env['magento.product.media'].search([
+                ('external_id', 'in', odoo_delete_ids),
+                ('backend_id', '=', self.backend_record.id),
+            ]))
             self.env['magento.product.media'].search([
                 ('external_id', 'in', odoo_delete_ids),
                 ('backend_id', '=', self.backend_record.id),
@@ -386,6 +406,11 @@ class ProductProductExporter(Component):
         self._check_one_image_main()
 
     def _after_export(self):
+        '''
+        Base _after_export method
+        :return:
+        '''
+        _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
         self._sync_images()
         self._export_base_image()
         self._export_stock()
@@ -450,6 +475,18 @@ class ProductProductExportMapper(Component):
             val = 0        
         return {'weight': val}
         
+    @mapping
+    def media_gallery_entries(self, record):
+        data = []
+        for image in record.magento_image_bind_ids:
+            data.append({
+                'id': image.external_id,
+                "media_type": "image",
+                "label": image.label,
+                "position": image.position,
+            })
+        return {'media_gallery_entries': data}
+
     @mapping
     def attribute_set_id(self, record):
         if record.attribute_set_id:

@@ -17,8 +17,6 @@ class ProductTemplateDefinitionExporter(Component):
     _name = 'magento.product.template.exporter'
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
-    _variant_update_fields = ['export_base_image', 'list_price', 'name', 'website_meta_description']
-    _image_update_fields = ['attribute_line_ids']
 
     def _sku_inuse(self, sku):
         search_count = self.env['magento.product.template'].search_count([
@@ -72,8 +70,14 @@ class ProductTemplateDefinitionExporter(Component):
             )
             map_record = mapper.map_record(data)
             update_data = map_record.values(binding=self.binding)
-            _logger.info("Got Update data: %s", update_data)
-            self.binding.with_context(connector_no_export=True).update(update_data)
+            _logger.info("Got Create data: %s", update_data)
+            self.binding.with_context(connector_no_export=True).write(update_data)
+            # Update / Import stock item
+            stock_importer = self.component(
+                usage='record.importer',
+                model_name='magento.stock.item'
+            )
+            stock_importer.run(data['extension_attributes']['stock_item'])
             return False
         # Do use the importer to update the binding
         importer = self.component(usage='record.importer',
@@ -92,8 +96,14 @@ class ProductTemplateDefinitionExporter(Component):
             )
             map_record = mapper.map_record(data)
             update_data = map_record.values(binding=self.binding)
-            _logger.info("Got Update data: %s", update_data)
-            self.binding.with_context(connector_no_export=True).update(update_data)
+            _logger.info("Got Update data: %s for binding %s", update_data, self.binding)
+            self.binding.with_context(connector_no_export=True).write(update_data)
+            # Update / Import stock item
+            stock_importer = self.component(
+                usage='record.importer',
+                model_name='magento.stock.item'
+            )
+            stock_importer.run(data['extension_attributes']['stock_item'])
             return False
         _logger.info("Got result data: %s", data)
 
@@ -146,11 +156,11 @@ class ProductTemplateDefinitionExporter(Component):
         """ Export the dependencies for the record"""
         super(ProductTemplateDefinitionExporter, self)._export_dependencies()
         self._create_attribute_lines()
-        if self.update_variants and self.external_id:
-            self._export_variants()
+        self._export_variants()
         return
 
     def _after_export(self):
+        _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
         super(ProductTemplateDefinitionExporter, self)._after_export()
         storeview_id = self.work.storeview_id if hasattr(self.work, 'storeview_id') else False
         if storeview_id:
@@ -163,14 +173,6 @@ class ProductTemplateDefinitionExporter(Component):
         '''
 
     def run(self, binding, fields=None):
-        self.update_variants = True
-        if fields:
-            self.update_variants = any(field in self._variant_update_fields for field in fields)
-        self.update_images = True
-        if fields:
-            self.update_images = any(field in self._image_update_fields for field in fields)
-        self.update_variants = True
-        self.update_images = True
         return super(ProductTemplateDefinitionExporter, self).run(binding)
 
 

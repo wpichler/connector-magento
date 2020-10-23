@@ -512,6 +512,8 @@ class ProductUpdateWriteMapper(Component):
         # Only for simple products
         if not record['type_id'] == 'simple':
             return {}
+        if not 'extension_attributes' in record or not'category_links' in record['extension_attributes']:
+            return {}
         data = []
         for position in record['extension_attributes']['category_links']:
             binder = self.binder_for('magento.product.category')

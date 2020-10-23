@@ -15,6 +15,7 @@ from ...components.backend_adapter import MAGENTO_DATETIME_FORMAT
 import odoo.addons.decimal_precision as dp
 from urllib.parse import urljoin
 from odoo.addons.queue_job.job import identity_exact
+from odoo.exceptions import MissingError
 
 
 _logger = logging.getLogger(__name__)
@@ -165,9 +166,12 @@ class MagentoProductProduct(models.Model):
     @job(default_channel='root.magento')
     def run_sync_prices_to_magento(self):
         self.ensure_one()
-        with self.backend_id.work_on(self._name) as work:
-            exporter = work.component(usage='record.exporter.price')
-            return exporter.run(self)
+        try:
+            with self.backend_id.work_on(self._name) as work:
+                exporter = work.component(usage='record.exporter.price')
+                return exporter.run(self)
+        except MissingError as e:
+            return True
 
     def unlink(self):
         for product in self:

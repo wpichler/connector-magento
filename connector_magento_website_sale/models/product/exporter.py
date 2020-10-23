@@ -86,6 +86,7 @@ class ProductProductExporter(Component):
                 ibinding.unlink()
 
     def _export_images(self):
+        _logger.info("AFTEREXPORT: In _export_images at %s", __name__)
         pass
 
     def _export_dependencies(self):
@@ -94,8 +95,10 @@ class ProductProductExporter(Component):
 
     def _after_export(self):
         """ Export the dependencies for the record"""
-        super(ProductProductExporter, self)._after_export()
+        _logger.info("AFTEREXPORT: In _after_export at %s", __name__)
+        # Export images have to run before the super call - because in the super call there is a sync check
         self._export_images()
+        super(ProductProductExporter, self)._after_export()
         self._export_product_links()
         return
 
