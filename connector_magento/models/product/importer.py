@@ -132,7 +132,13 @@ class ProductImportMapper(Component):
         if not tax_attribute:
             return {}
         binder = self.binder_for('magento.account.tax')
-        mtax = binder.to_internal(tax_attribute[0]['value'], unwrap=False)
+        # I have no idea why the binder can not get the record here - as soon as you use sudo it will work...
+        # mtax = binder.to_internal(str(tax_attribute[0]['value']), unwrap=False)
+        mtax = self.env['magento.account.tax'].sudo().search(
+            [('external_id', '=', str(tax_attribute[0]['value'])),
+             ('backend_id', '=', self.backend_record.id)]
+        )
+
         if int(tax_attribute[0]['value']) == 0:
             return {}
         if not mtax:

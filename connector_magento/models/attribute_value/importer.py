@@ -24,9 +24,9 @@ class AttributeValueImporter(Component):
     def _update_data(self, map_record, **kwargs):
         return map_record.values(magento_attribute=self.magento_attribute, **kwargs)
 
-    def run(self, external_id, force=False, binding=None, magento_attribute=None):
-        self.magento_attribute = magento_attribute
-        return super(AttributeValueImporter, self).run(external_id, force, binding)
+    def run(self, external_id, **kwargs):
+        self.magento_attribute = kwargs.get("magento_attribute", None)
+        return super(AttributeValueImporter, self).run(external_id, *kwargs)
 
 
 class AttributeValueImportMapper(Component):

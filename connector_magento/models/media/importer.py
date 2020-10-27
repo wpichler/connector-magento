@@ -31,9 +31,9 @@ class ProductMediaImporter(Component):
         """ Return the raw Magento data for ``self.external_id`` """
         return self.backend_adapter.read(self.external_id, self.product_binding.external_id)
 
-    def run(self, external_id, product_binding, force=False, binding=None):
-        self.product_binding = product_binding
-        return super(ProductMediaImporter, self).run(external_id, force, binding)
+    def run(self, external_id, **kwargs):
+        self.product_binding = kwargs.get('product_binding')
+        return super(ProductMediaImporter, self).run(external_id, *kwargs)
 
 
 class ProductMediaMapper(Component):

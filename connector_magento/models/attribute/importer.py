@@ -121,8 +121,10 @@ class AttributeImportMapper(Component):
     @only_create
     @mapping
     def create_variant(self, record):
-        # Is by default not set - will get set as soon as this attribute appears in a configureable product
-        return
+        if not record['frontend_input'] or record['frontend_input'] in ['text', 'date', 'gallery', 'media_image', 'price', 'textarea', 'weight']:
+            return {'create_variant': 'never'}
+        else:
+            return {'create_variant': 'always'}
 
     @mapping
     def backend_id(self, record):

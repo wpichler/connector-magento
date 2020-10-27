@@ -73,3 +73,7 @@ class AttributeSet(Component):
         # Batch Import attribute groups
         importer = self.component(usage='batch.importer', model_name='magento.product.attributes.group')
         importer.run()
+
+    def run(self, external_id, **kwargs):
+        _logger.info("In attribute set run function")
+        return super(AttributeSet, self).run(external_id, *kwargs)
