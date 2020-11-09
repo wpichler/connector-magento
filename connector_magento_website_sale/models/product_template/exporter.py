@@ -18,7 +18,7 @@ class ProductTemplateDefinitionExporter(Component):
         super(ProductTemplateDefinitionExporter, self)._after_export()
 
     def _export_images(self):
-        _logger.info("AFTEREXPORT: In _export_images at %s", __name__)
+        _logger.info("AFTEREXPORT: In _export_images at %s with %s", __name__, self.binding.odoo_id.base_product_image_ids)
         listener = self.component(usage='event.listener',
                                   model_name='product.image')
         for image in self.binding.odoo_id.base_product_image_ids:

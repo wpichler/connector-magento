@@ -114,7 +114,7 @@ class MagentoProductImageExportListener(Component):
                 remove_one_template(template=record.image_product_id.product_tmpl_id, type='product_image_ids')
             # Check on which backends target product is available
             export_one_variant(product=record.image_product_id, type='product_image_ids')
-        elif record.attribute_value_id:
+        if record.attribute_value_id:
             _logger.info("In product image attached to an attribute")
             # find all product variants where this value is set
             variants = record.base_product_tmpl_id.product_variant_ids.filtered(lambda v: record.attribute_value_id in v.attribute_value_ids)
