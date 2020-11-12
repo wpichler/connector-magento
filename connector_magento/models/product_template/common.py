@@ -130,7 +130,9 @@ class MagentoProductTemplate(models.Model):
     @job(default_channel='root.magento')
     def sync_from_magento(self):
         for binding in self:
-            binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
+            delayed = binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
+            job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
+            binding.odoo_id.job_ids += job
 
     @api.multi
     @job(default_channel='root.magento')
@@ -157,6 +159,16 @@ class MagentoProductTemplate(models.Model):
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    @api.depends('job_ids')
+    def _compute_job_counts(self):
+        for template in self:
+            failed_jobs = template.job_ids.filtered(lambda j: j.state == 'failed')
+            open_jobs = template.job_ids.filtered(lambda j: j.state in ['pending', 'enqueued', 'started'])
+            template.update({
+                'open_job_count': len(open_jobs),
+                'failed_job_count': len(failed_jobs),
+            })
+
     magento_template_bind_ids = fields.One2many(
         comodel_name='magento.product.template',
         inverse_name='odoo_id',
@@ -168,6 +180,18 @@ class ProductTemplate(models.Model):
     )
     auto_create_variants = fields.Boolean('Auto Create Variants', default=True)
     magento_default_code = fields.Char(string="Default code used for magento")
+    job_ids = fields.Many2many('queue.job', string="Jobs")
+    open_job_count = fields.Integer(string='Open Jobs', compute='_compute_job_counts')
+    failed_job_count = fields.Integer(string='Failed Jobs', compute='_compute_job_counts')
+
+    @api.multi
+    def action_view_jobs(self):
+        self.ensure_one()
+        action = self.env.ref('queue.action_queue_job').read()[0]
+        action.update({
+            'domain': [('id', 'in', self.job_ids.ids)],
+        })
+        return action
 
     @api.model
     def create(self, vals):

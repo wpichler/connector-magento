@@ -73,6 +73,7 @@ class ProductProductExporter(Component):
                 categ_exporter.run(m_categ)
         return
 
+    '''
     def _check_image_bindings(self):
         for ibinding in self.binding.magento_image_bind_ids.filtered(lambda b: b.type == 'product_image_ids'):
             if not ibinding.odoo_id \
@@ -84,6 +85,7 @@ class ProductProductExporter(Component):
             if not ibinding.odoo_id or not ibinding.odoo_id.image:
                 _logger.info("Do delete image %s", ibinding)
                 ibinding.unlink()
+    '''
 
     def _export_images(self):
         _logger.info("AFTEREXPORT: In _export_images at %s", __name__)
