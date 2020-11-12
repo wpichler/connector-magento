@@ -21,7 +21,7 @@ class ProductTemplate(models.Model):
 
     @api.multi
     def button_resync(self):
-        for template in self:
+        for template in self.sudo():
             for binding in template.magento_template_bind_ids:
                 binding.sync_to_magento()
 
