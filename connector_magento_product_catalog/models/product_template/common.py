@@ -19,6 +19,12 @@ class ProductTemplate(models.Model):
 
     export_base_image = fields.Boolean('Export Base Image', default=True)
 
+    @api.multi
+    def button_resync(self):
+        for template in self:
+            for binding in template.magento_template_bind_ids:
+                binding.sync_to_magento()
+
 
 class MagentoProductTemplate(models.Model):
     _inherit = 'magento.product.template'

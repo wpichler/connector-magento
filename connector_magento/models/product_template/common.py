@@ -187,7 +187,7 @@ class ProductTemplate(models.Model):
     @api.multi
     def action_view_jobs(self):
         self.ensure_one()
-        action = self.env.ref('queue.action_queue_job').read()[0]
+        action = self.env.ref('queue_job.action_queue_job').read()[0]
         action.update({
             'domain': [('id', 'in', self.job_ids.ids)],
         })
