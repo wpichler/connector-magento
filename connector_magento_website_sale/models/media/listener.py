@@ -158,7 +158,7 @@ class MagentoProductImageExportListener(Component):
                 delayed = binding.with_delay(identity_key=key, eta=eta).export_record(binding.backend_id)
                 if binding.magento_product_tmpl_id:
                     job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
-                    binding.magento_product_tmpl_id.odoo_id.job_ids += job
+                    binding.magento_product_tmpl_id.odoo_id.with_context(connector_no_export=True).job_ids += job
             else:
                 binding.export_record(binding.backend_id)
 

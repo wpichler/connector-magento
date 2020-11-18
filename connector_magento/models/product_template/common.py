@@ -132,7 +132,7 @@ class MagentoProductTemplate(models.Model):
         for binding in self:
             delayed = binding.with_delay(identity_key=identity_exact).run_sync_from_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
-            binding.odoo_id.job_ids += job
+            binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
     @api.multi
     @job(default_channel='root.magento')
@@ -164,7 +164,7 @@ class ProductTemplate(models.Model):
         for template in self.sudo():
             failed_jobs = template.job_ids.filtered(lambda j: j.state == 'failed')
             open_jobs = template.job_ids.filtered(lambda j: j.state in ['pending', 'enqueued', 'started'])
-            template.update({
+            template.with_context(connector_no_export=True).update({
                 'open_job_count': len(open_jobs),
                 'failed_job_count': len(failed_jobs),
             })

@@ -4,6 +4,7 @@
 from odoo.addons.component.core import Component
 from odoo.addons.component_event import skip_if
 from odoo.addons.queue_job.job import identity_exact
+import datetime
 
 
 class MagentoProductMediaBindingExportListener(Component):
@@ -44,4 +45,6 @@ class MagentoProductMediaExportListener(Component):
             return
         for binding in record.magento_bind_ids:
             for image_binding in binding.magento_image_bind_ids.filtered(lambda mi: mi.type == 'product_image'):
-                image_binding.with_delay(identity_key=identity_exact).export_record(image_binding.backend_id)
+                key = "magento_product_media_%s_%s" % (image_binding.id, image_binding.backend_id.id,)
+                eta = datetime.datetime.now() + datetime.timedelta(seconds=10)
+                image_binding.with_delay(identity_key=key,eta=eta).export_record(image_binding.backend_id)

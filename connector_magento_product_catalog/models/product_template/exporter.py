@@ -133,7 +133,7 @@ class ProductTemplateDefinitionExporter(Component):
                     _logger.info("Do queue export variant: %s", m_prod)
                     delayed = m_prod.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run_sync_to_magento()
                     job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
-                    self.binding.odoo_id.job_ids += job
+                    self.binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
     def _create_attribute_lines(self):
         record = self.binding

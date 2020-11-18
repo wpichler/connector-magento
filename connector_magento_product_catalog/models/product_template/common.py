@@ -38,7 +38,7 @@ class MagentoProductTemplate(models.Model):
         for binding in self:
             delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id)).run_sync_to_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
-            binding.odoo_id.job_ids += job
+            binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
     @api.multi
     @related_action(action='related_action_unwrap_binding')

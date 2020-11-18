@@ -99,7 +99,10 @@ class MagentoStockItem(models.Model):
             if force or binding.should_export:
                 delayed = binding.with_delay(priority=5, identity_key=identity_exact).run_sync_to_magento()
                 job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
-                binding.magento_product_template_binding_id.odoo_id.job_ids += job
+                if binding.magento_product_template_binding_id:
+                    binding.magento_product_template_binding_id.odoo_id.with_context(connector_no_export=True).job_ids += job
+                else:
+                    binding.magento_product_binding_id.odoo_id.product_tmpl_id.with_context(connector_no_export=True).job_ids += job
 
     @api.multi
     @job(default_channel='root.magento.stock')
