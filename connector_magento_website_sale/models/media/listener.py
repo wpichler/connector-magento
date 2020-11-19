@@ -95,6 +95,8 @@ class MagentoProductImageExportListener(Component):
                 if matching_bindings:
                     matching_bindings.unlink()
 
+        if not record.image:
+            return
         # Then to the variants
         if record.image_product_id:
             # There can only be one...

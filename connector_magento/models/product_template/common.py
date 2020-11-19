@@ -164,6 +164,7 @@ class ProductTemplate(models.Model):
         for template in self.sudo():
             failed_jobs = template.job_ids.filtered(lambda j: j.state == 'failed')
             open_jobs = template.job_ids.filtered(lambda j: j.state in ['pending', 'enqueued', 'started'])
+
             template.with_context(connector_no_export=True).update({
                 'open_job_count': len(open_jobs),
                 'failed_job_count': len(failed_jobs),
@@ -181,8 +182,8 @@ class ProductTemplate(models.Model):
     auto_create_variants = fields.Boolean('Auto Create Variants', default=True)
     magento_default_code = fields.Char(string="Default code used for magento")
     job_ids = fields.Many2many('queue.job', string="Jobs")
-    open_job_count = fields.Integer(string='Open Jobs', compute='_compute_job_counts', store=True)
-    failed_job_count = fields.Integer(string='Failed Jobs', compute='_compute_job_counts', store=True)
+    open_job_count = fields.Integer(string='Open Jobs', compute='_compute_job_counts', store=False)
+    failed_job_count = fields.Integer(string='Failed Jobs', compute='_compute_job_counts', store=False)
 
     @api.multi
     def action_view_jobs(self):
