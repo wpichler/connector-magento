@@ -17,9 +17,6 @@ from odoo.addons.connector.exception import (IDMissingInBackend,
                                              RetryableJobError)
 from .backend_adapter import MAGENTO_DATETIME_FORMAT
 from odoo.addons.queue_job.job import identity_exact
-from urllib.error import HTTPError
-import json
-from odoo.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 _logger = logging.getLogger(__name__)
 

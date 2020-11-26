@@ -362,7 +362,7 @@ class MagentoBackend(models.Model):
         with backend.work_on("magento.product.template") as work:
             adapter = work.component(usage='backend.adapter')
             filters = {}
-            #filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
+            filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
             _logger.info("Do read magento products from magento")
             products = adapter.search_read(filters)
             _logger.info("Got %s products", len(products['items']))
@@ -404,6 +404,7 @@ class MagentoBackend(models.Model):
                 error = None
                 if binding.magento_id != product['id']:
                     error = "Binding ID does not match magento ID !. %s, %s" % (product, binding, )
+                    binding.with_context(connector_no_export=True).magento_id = product['id']
                 self.env['magento.product.sync'].create({
                     'name': product['name'],
                     'backend_id': backend.id,
