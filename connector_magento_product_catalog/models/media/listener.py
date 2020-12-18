@@ -14,11 +14,13 @@ class MagentoProductMediaBindingExportListener(Component):
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_create(self, record, fields=None):
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id)
+        key = "magento_product_media_%s_%s" % (record.id, record.backend_id.id,)
+        record.with_delay(identity_key=key, priority=0).export_record(record.backend_id)
 
     @skip_if(lambda self, record, **kwargs: self.no_connector_export(record))
     def on_record_write(self, record, fields=None):
-        record.with_delay(identity_key=identity_exact).export_record(record.backend_id, fields)
+        key = "magento_product_media_%s_%s" % (record.id, record.backend_id.id,)
+        record.with_delay(identity_key=key, priority=0).export_record(record.backend_id, fields)
 
     def on_record_unlink(self, record):
         with record.backend_id.work_on(record._name) as work:

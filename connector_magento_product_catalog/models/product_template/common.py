@@ -32,17 +32,14 @@ class MagentoProductTemplate(models.Model):
     special_price_active = fields.Boolean('Special Price', default=False)
 
     @api.multi
-    @job(default_channel='root.magento.productexport')
-    @related_action(action='related_action_unwrap_binding')
     def sync_to_magento(self):
         for binding in self:
-            delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id)).run_sync_to_magento()
+            delayed = binding.with_delay(identity_key=('magento_product_template_%s' % binding.id), priority=10).run_sync_to_magento()
             job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
             binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 
     @api.multi
-    @related_action(action='related_action_unwrap_binding')
-    @job(default_channel='root.magento.productexport')
+    @job(default_channel='root.magento.product_to_magento')
     @related_action(action='related_action_unwrap_binding')
     def run_sync_to_magento(self):
         self.ensure_one()

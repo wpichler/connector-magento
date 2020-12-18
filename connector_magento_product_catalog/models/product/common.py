@@ -34,15 +34,13 @@ class MagentoProductProduct(models.Model):
     ], string="Visibility", default='4')
     
     @api.multi
-    @job(default_channel='root.magento')
-    @related_action(action='related_action_unwrap_binding')
     def sync_to_magento(self):
         for binding in self:
-            binding.with_delay(identity_key=('magento_product_product_%s' % binding.id)).run_sync_to_magento()
+            binding.with_delay(identity_key=('magento_product_product_%s' % binding.id), priority=10).run_sync_to_magento()
 
     @api.multi
     @related_action(action='related_action_unwrap_binding')
-    @job(default_channel='root.magento')
+    @job(default_channel='root.magento.product_to_magento')
     def run_sync_to_magento(self):
         self.ensure_one()
         try:

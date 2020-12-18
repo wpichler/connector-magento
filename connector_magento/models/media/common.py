@@ -56,6 +56,7 @@ class MagentoProductMedia(models.Model):
                                               string='Magento Product Template',
                                               required=False,
                                               ondelete='cascade')
+    magento_exists = fields.Boolean('Magento Exists', default=False)
     p_image = fields.Binary(related='magento_product_id.odoo_id.image')
     pt_image = fields.Binary(related='magento_product_tmpl_id.odoo_id.image')
     label = fields.Char(string="Label")

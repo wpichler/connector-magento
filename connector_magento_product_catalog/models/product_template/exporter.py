@@ -9,6 +9,7 @@ from odoo.addons.connector.components.mapper import mapping, only_create
 from odoo.addons.connector.exception import MappingError
 from slugify import slugify
 import logging
+from odoo import _
 
 _logger = logging.getLogger(__name__)
 
@@ -17,6 +18,44 @@ class ProductTemplateDefinitionExporter(Component):
     _name = 'magento.product.template.exporter'
     _inherit = 'magento.product.product.exporter'
     _apply_on = ['magento.product.template']
+
+    def _run(self, fields=None):
+        """ Flow of the synchronization, implemented in inherited classes"""
+        assert self.binding
+
+        if not self.external_id:
+            fields = None  # should be created with all the fields
+
+        if self._has_to_skip():
+            return
+
+        # export the missing linked resources
+        self._export_dependencies()
+
+        # prevent other jobs to export the same record
+        # will be released on commit (or rollback)
+        self._lock()
+
+        map_record = self._map_data()
+
+        _logger.info("External ID is: %s", self.external_id)
+        if self.external_id and self.binding.magento_id:
+            _logger.info("External ID is: %s", self.external_id)
+            record = self._update_data(map_record, fields=fields)
+            if not record:
+                return _('Nothing to export.')
+            data = self._update(record)
+            if data:
+                self._update_binding_record_after_write(data)
+        else:
+            record = self._create_data(map_record, fields=fields)
+            if not record:
+                return _('Nothing to export.')
+            data = self._create(record)
+            if not data:
+                raise UserWarning('Create did not returned anything on %s with binding id %s', self._name, self.binding.id)
+            self._update_binding_record_after_create(data)
+        return _('Record exported with ID %s on Magento.') % self.external_id
 
     def _sku_inuse(self, sku):
         search_count = self.env['magento.product.template'].search_count([
@@ -131,7 +170,7 @@ class ProductTemplateDefinitionExporter(Component):
                     variant_exporter.run(m_prod)
                 else:
                     _logger.info("Do queue export variant: %s", m_prod)
-                    delayed = m_prod.with_delay(identity_key=('magento_product_product_%s' % m_prod.id)).run_sync_to_magento()
+                    delayed = m_prod.with_delay(identity_key=('magento_product_product_%s' % m_prod.id), priority=5).run_sync_to_magento()
                     job = self.env['queue.job'].search([('uuid', '=', delayed.uuid)])
                     self.binding.odoo_id.with_context(connector_no_export=True).job_ids += job
 

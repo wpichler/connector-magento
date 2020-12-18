@@ -89,7 +89,14 @@ class ProductProductExporter(Component):
 
     def _export_images(self):
         _logger.info("AFTEREXPORT: In _export_images at %s", __name__)
-        pass
+        # If we are a variant product - then no need here for an action - the template will sync the images
+        if self.binding._name == 'magento.product.template' or self.binding.magento_configurable_id:
+            return
+        # If we are a simple product - then check for image sync
+        listener = self.component(usage='event.listener',
+                                  model_name='product.image')
+        for image in self.binding.odoo_id.base_product_image_ids:
+            listener._check_create_binding(image, do_delay=True)
 
     def _export_dependencies(self):
         super(ProductProductExporter, self)._export_dependencies()

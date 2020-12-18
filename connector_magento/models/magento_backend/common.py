@@ -16,6 +16,7 @@ from odoo.addons.connector.models import checkpoint
 from ...components.backend_adapter import MagentoLocation, MagentoAPI
 from odoo.addons.queue_job.job import identity_exact
 import json
+import os
 
 _logger = logging.getLogger(__name__)
 
@@ -355,6 +356,56 @@ class MagentoBackend(models.Model):
                                'magento.product.product'):
                 self.env[model_name].search([('backend_id', '=', backend.id)]).with_delay(identity_key=identity_exact).sync_from_magento()
 
+    def _check_media_entries(self, product):
+        if 'media_gallery_entries' not in product:
+            return
+        for entrie in product['media_gallery_entries']:
+            '''
+                {
+                    "id": 150132,
+                    "media_type": "image",
+                    "label": null,
+                    "position": 5,
+                    "disabled": false,
+                    "types": [],
+                    "file": "/a/c/ac-theresa-33x41_7.jpeg"
+                }            
+            '''
+            # There should be a 100% match on filename
+            media = self.env['magento.product.media'].search([
+                ('file', '=', entrie['file']),
+                ('backend_id', '=', self.id)
+            ])
+            if not media:
+                media = self.env['magento.product.media'].search([
+                    ('file', '=', os.path.basename(entrie['file'])),
+                    ('backend_id', '=', self.id)
+                ])
+            if media and len(media) == 1:
+                try:
+                    existing = self.env['magento.product.media'].search([('external_id', '=', str(entrie['id'])), ('backend_id', '=', self.id)])
+                    if existing and existing != media:
+                        _logger.error("There is already an entrie with external ID: %s", entrie['id'])
+                        existing.unlink()
+                        media.with_context(connector_no_export=True).update({
+                            'external_id': entrie['id'],
+                            'file': entrie['file'],
+                            'position': entrie['position'],
+                            'magento_exists': True,
+                        })
+                    elif not existing:
+                        _logger.info("Media binding found - everything is good with it")
+                        media.with_context(connector_no_export=True).update({
+                            'external_id': entrie['id'],
+                            'file': entrie['file'],
+                            'magento_exists': True,
+                            'position': entrie['position'],
+                        })
+                except Exception as e:
+                    _logger.error("Got Exception %s", e)
+            else:
+                _logger.info("No media binding found on product %s for %s", product['sku'], entrie)
+
     @api.multi
     def button_check_products(self):
         self.ensure_one()
@@ -362,7 +413,6 @@ class MagentoBackend(models.Model):
         with backend.work_on("magento.product.template") as work:
             adapter = work.component(usage='backend.adapter')
             filters = {}
-            filters['sku'] = {'eq': 'ac-bergschafwolle-farbe-ungewaschen-grob-international-2-50-kg'}
             _logger.info("Do read magento products from magento")
             products = adapter.search_read(filters)
             _logger.info("Got %s products", len(products['items']))
@@ -372,6 +422,8 @@ class MagentoBackend(models.Model):
             pskus = []
             bskus = []
             for product in products['items']:
+                #self._check_media_entries(product)
+
                 binding = None
                 if product['type_id'] == 'configurable':
                     tskus.append(product['sku'])
@@ -402,7 +454,7 @@ class MagentoBackend(models.Model):
                             binding.with_context(connector_no_export=True).magento_url_key = cattribute['value']
                         break
                 error = None
-                if binding.magento_id != product['id']:
+                if binding and binding.magento_id != product['id']:
                     error = "Binding ID does not match magento ID !. %s, %s" % (product, binding, )
                     binding.with_context(connector_no_export=True).magento_id = product['id']
                 self.env['magento.product.sync'].create({
@@ -448,7 +500,7 @@ class MagentoBackend(models.Model):
                     'magento_product_id': binding.id,
                     'magento_template_id': None,
                     'magento_bundle_id': None,
-                    'error': "Product binding without magento configureable",
+                    'error': "Product binding without magento product",
                 })
             bbindings = self.env['magento.product.bundle'].search([
                 ('backend_id', '=', backend.id),

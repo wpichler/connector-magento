@@ -24,7 +24,6 @@ class ProductTemplateDefinitionExporter(Component):
         super(ProductTemplateDefinitionExporter, self)._export_images()
 
 
-
 class ProductTemplateExportMapper(Component):
     _inherit = 'magento.product.template.export.mapper'
 

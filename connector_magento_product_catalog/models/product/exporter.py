@@ -12,6 +12,7 @@ from odoo.addons.connector_magento.components.backend_adapter import MAGENTO_DAT
 import magic
 import base64
 import logging
+from odoo import _
 
 _logger = logging.getLogger(__name__)
 
@@ -20,6 +21,44 @@ class ProductProductExporter(Component):
     _name = 'magento.product.product.exporter'
     _inherit = 'magento.exporter'
     _apply_on = ['magento.product.product']
+
+    def _run(self, fields=None):
+        """ Flow of the synchronization, implemented in inherited classes"""
+        assert self.binding
+
+        if not self.external_id:
+            fields = None  # should be created with all the fields
+
+        if self._has_to_skip():
+            return
+
+        # export the missing linked resources
+        self._export_dependencies()
+
+        # prevent other jobs to export the same record
+        # will be released on commit (or rollback)
+        self._lock()
+
+        map_record = self._map_data()
+
+        _logger.info("External ID is: %s", self.external_id)
+        if self.external_id and self.binding.magento_id:
+            _logger.info("External ID is: %s", self.external_id)
+            record = self._update_data(map_record, fields=fields)
+            if not record:
+                return _('Nothing to export.')
+            data = self._update(record)
+            if data:
+                self._update_binding_record_after_write(data)
+        else:
+            record = self._create_data(map_record, fields=fields)
+            if not record:
+                return _('Nothing to export.')
+            data = self._create(record)
+            if not data:
+                raise UserWarning('Create did not returned anything on %s with binding id %s', self._name, self.binding.id)
+            self._update_binding_record_after_create(data)
+        return _('Record exported with ID %s on Magento.') % self.external_id
 
     def _sku_inuse(self, sku):
         search_count = self.env['magento.product.template'].search_count([
@@ -131,6 +170,7 @@ class ProductProductExporter(Component):
                 usage='record.importer',
                 model_name='magento.stock.item'
             )
+            _logger.info("Data: %s", data)
             stock_importer.run(data['extension_attributes']['stock_item'])
             self.external_id = data['sku']
             return False
@@ -475,6 +515,7 @@ class ProductProductExportMapper(Component):
             val = 0        
         return {'weight': val}
         
+    '''
     @mapping
     def media_gallery_entries(self, record):
         data = []
@@ -486,7 +527,7 @@ class ProductProductExportMapper(Component):
                 "position": image.position,
             })
         return {'media_gallery_entries': data}
-
+    '''
     @mapping
     def attribute_set_id(self, record):
         if record.attribute_set_id:

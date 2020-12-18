@@ -757,12 +757,16 @@ class SaleOrderLineImportMapper(Component):
         if 'product_type' in record and record['product_type'] == 'bundle':
             model = 'magento.product.bundle'
 
+        if record['product_id'] == 14418:
+            # Dirty hack for steiner
+            record['product_id'] = 14417
+            record['sku'] = 'wollball-daniel-farbe-bunt'
         binder = self.binder_for(model)
         product_ref = self._get_product_ref(record)
         product = binder.to_internal(product_ref, unwrap=True)
         assert product, (
-            "product_id %s should have been imported in "
-            "SaleOrderImporter._import_dependencies" % record['product_id'])
+            "product_id %s with type %s should have been imported in "
+            "SaleOrderImporter._import_dependencies" % (record['product_id'], record['product_type'], ))
         return {'product_id': product.id}
 
     @mapping
